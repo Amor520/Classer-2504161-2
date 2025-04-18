@@ -58,30 +58,24 @@
             <thead class="table-light">
               <tr>
                 <th>活动名称</th>
+                <th>活动日期</th>
                 <th>获得分数</th>
               </tr>
             </thead>
             <tbody>
-              <% 
-                const activities = Object.keys(studentData).filter(key => 
-                  key !== '学号' && key !== '姓名' && key !== '总分' && 
-                  key !== '创建时间' && key !== '更新时间' && 
-                  studentData[key] !== null && studentData[key] > 0
-                );
-                
-                activities.forEach(activity => {
-              %>
+              <% if (studentActivities && studentActivities.length > 0) { 
+                  studentActivities.forEach(activity => { %>
                 <tr>
-                  <td><%= activity %></td>
+                  <td><a href="/activity/<%= activity.活动ID %>"><%= activity.活动名称 %></a></td>
+                  <td><%= activity.活动日期 ? new Date(activity.活动日期).toLocaleDateString('zh-CN') : '日期未定' %></td>
                   <td>
-                    <span class="badge bg-success rounded-pill"><%= studentData[activity] %></span>
+                    <span class="badge bg-success rounded-pill"><%= activity.加分 %></span>
                   </td>
                 </tr>
-              <% }); %>
-              
-              <% if (activities.length === 0) { %>
+              <% }); 
+              } else { %>
                 <tr>
-                  <td colspan="2" class="text-center">暂无活动参与记录</td>
+                  <td colspan="3" class="text-center">暂无活动参与记录</td>
                 </tr>
               <% } %>
             </tbody>
@@ -136,15 +130,15 @@
             
             <div>
               <h6>活动参与</h6>
-              <p>参与活动数: <span class="badge bg-primary"><%= activities.length %></span></p>
+              <p>参与活动数: <span class="badge bg-primary"><%= studentActivities.length %></span></p>
               <div class="progress mb-3" style="height: 10px;">
                 <div class="progress-bar bg-info" role="progressbar" 
-                     style="width: <%= (activities.length / 10) * 100 %>%;" 
-                     aria-valuenow="<%= activities.length %>" 
+                     style="width: <%= (studentActivities.length / 10) * 100 %>%;" 
+                     aria-valuenow="<%= studentActivities.length %>" 
                      aria-valuemin="0" 
                      aria-valuemax="10"></div>
               </div>
-              <small class="text-muted">活动参与率: <%= Math.round((activities.length / 10) * 100) %>%</small>
+              <small class="text-muted">活动参与率: <%= Math.round((studentActivities.length / 10) * 100) %>%</small>
             </div>
           </div>
         </div>
@@ -160,23 +154,26 @@
     
     const activityNames = [
       <% 
-        const allActivities = Object.keys(studentData).filter(key => 
-          key !== '学号' && key !== '姓名' && key !== '总分' && 
-          key !== '创建时间' && key !== '更新时间'
-        );
-        
-        allActivities.forEach((activity, index) => {
+        if (studentActivities && studentActivities.length > 0) {
+          studentActivities.forEach((activity, index) => {
       %>
-        '<%= activity %>'<%= index < allActivities.length - 1 ? ',' : '' %>
-      <% }); %>
+        '<%= activity.活动名称 %>'<%= index < studentActivities.length - 1 ? ',' : '' %>
+      <% 
+          });
+        }
+      %>
     ];
     
     const activityValues = [
       <% 
-        allActivities.forEach((activity, index) => {
+        if (studentActivities && studentActivities.length > 0) {
+          studentActivities.forEach((activity, index) => {
       %>
-        <%= studentData[activity] || 0 %><%= index < allActivities.length - 1 ? ',' : '' %>
-      <% }); %>
+        <%= activity.加分 || 0 %><%= index < studentActivities.length - 1 ? ',' : '' %>
+      <% 
+          });
+        }
+      %>
     ];
     
     const activityColors = [

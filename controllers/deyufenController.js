@@ -108,9 +108,14 @@ exports.studentDetail = async (req, res) => {
       });
     }
     
+    // 获取学生参与的所有活动
+    const studentActivities = await deyufenModel.getStudentActivities(studentId);
+    console.log(`获取到学生 ${studentId} 参与的 ${studentActivities.length} 个活动`);
+    
     res.render('studentDetail', {
       title: `${studentData.姓名} 德育分详情`,
       studentData,
+      studentActivities,
       active: 'overview'
     });
   } catch (error) {
