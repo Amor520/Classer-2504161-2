@@ -1,0 +1,217 @@
+<%- include('partials/header') %>
+
+<div class="row">
+  <div class="col-md-4 mb-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-person-badge"></i> 学生信息</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-center mb-4">
+          <div class="student-avatar rounded-circle bg-light d-flex justify-content-center align-items-center" style="width: 150px; height: 150px;">
+            <i class="bi bi-person-fill display-1 text-primary"></i>
+          </div>
+        </div>
+        <div class="text-center mb-4">
+          <h3><%= studentData.姓名 %></h3>
+          <p class="lead text-muted"><%= studentData.学号 %></p>
+          <span class="badge bg-primary fs-5 rounded-pill"><%= studentData.总分 %> 分</span>
+        </div>
+        <hr>
+        <div class="d-grid">
+          <a href="/overview" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> 返回总览
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-8 mb-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-card-list"></i> 德育分详情</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-4">
+          <h5>德育分总览</h5>
+          <div class="progress mb-2" style="height: 30px;">
+            <div class="progress-bar 
+              <%= studentData.总分 >= 90 ? 'bg-success' : 
+                 (studentData.总分 >= 80 ? 'bg-info' : 
+                  (studentData.总分 >= 70 ? 'bg-primary' : 
+                   (studentData.总分 >= 60 ? 'bg-warning' : 'bg-danger'))) %>" 
+              role="progressbar" 
+              style="width: <%= (studentData.总分 / 100) * 100 %>%;" 
+              aria-valuenow="<%= studentData.总分 %>" 
+              aria-valuemin="0" 
+              aria-valuemax="100">
+              <%= studentData.总分 %> / 100
+            </div>
+          </div>
+          <small class="text-muted">最后更新时间: <%= new Date(studentData.更新时间).toLocaleString('zh-CN') %></small>
+        </div>
+        
+        <h5>活动参与情况</h5>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>活动名称</th>
+                <th>获得分数</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% 
+                const activities = Object.keys(studentData).filter(key => 
+                  key !== '学号' && key !== '姓名' && key !== '总分' && 
+                  key !== '创建时间' && key !== '更新时间' && 
+                  studentData[key] !== null && studentData[key] > 0
+                );
+                
+                activities.forEach(activity => {
+              %>
+                <tr>
+                  <td><%= activity %></td>
+                  <td>
+                    <span class="badge bg-success rounded-pill"><%= studentData[activity] %></span>
+                  </td>
+                </tr>
+              <% }); %>
+              
+              <% if (activities.length === 0) { %>
+                <tr>
+                  <td colspan="2" class="text-center">暂无活动参与记录</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 图表区域 -->
+<div class="row">
+  <div class="col-12 mb-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-info text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-pie-chart"></i> 德育分构成分析</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-8">
+            <canvas id="deyufenCompositionChart"></canvas>
+          </div>
+          <div class="col-md-4">
+            <div class="mb-4">
+              <h6>德育分等级</h6>
+              <% 
+                let grade = '';
+                let gradeClass = '';
+                
+                if (studentData.总分 >= 90) {
+                  grade = '优秀';
+                  gradeClass = 'success';
+                } else if (studentData.总分 >= 80) {
+                  grade = '良好';
+                  gradeClass = 'info';
+                } else if (studentData.总分 >= 70) {
+                  grade = '中等';
+                  gradeClass = 'primary';
+                } else if (studentData.总分 >= 60) {
+                  grade = '及格';
+                  gradeClass = 'warning';
+                } else {
+                  grade = '不及格';
+                  gradeClass = 'danger';
+                }
+              %>
+              <div class="alert alert-<%= gradeClass %> text-center">
+                <h4><%= grade %></h4>
+                <p class="mb-0"><%= studentData.总分 %> 分</p>
+              </div>
+            </div>
+            
+            <div>
+              <h6>活动参与</h6>
+              <p>参与活动数: <span class="badge bg-primary"><%= activities.length %></span></p>
+              <div class="progress mb-3" style="height: 10px;">
+                <div class="progress-bar bg-info" role="progressbar" 
+                     style="width: <%= (activities.length / 10) * 100 %>%;" 
+                     aria-valuenow="<%= activities.length %>" 
+                     aria-valuemin="0" 
+                     aria-valuemax="10"></div>
+              </div>
+              <small class="text-muted">活动参与率: <%= Math.round((activities.length / 10) * 100) %>%</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 德育分构成饼图
+    const compositionCtx = document.getElementById('deyufenCompositionChart').getContext('2d');
+    
+    const activityNames = [
+      <% 
+        const allActivities = Object.keys(studentData).filter(key => 
+          key !== '学号' && key !== '姓名' && key !== '总分' && 
+          key !== '创建时间' && key !== '更新时间'
+        );
+        
+        allActivities.forEach((activity, index) => {
+      %>
+        '<%= activity %>'<%= index < allActivities.length - 1 ? ',' : '' %>
+      <% }); %>
+    ];
+    
+    const activityValues = [
+      <% 
+        allActivities.forEach((activity, index) => {
+      %>
+        <%= studentData[activity] || 0 %><%= index < allActivities.length - 1 ? ',' : '' %>
+      <% }); %>
+    ];
+    
+    const activityColors = [
+      'rgba(255, 99, 132, 0.7)',
+      'rgba(54, 162, 235, 0.7)',
+      'rgba(255, 206, 86, 0.7)',
+      'rgba(75, 192, 192, 0.7)',
+      'rgba(153, 102, 255, 0.7)',
+      'rgba(255, 159, 64, 0.7)',
+      'rgba(199, 199, 199, 0.7)',
+      'rgba(83, 102, 255, 0.7)',
+      'rgba(40, 167, 69, 0.7)',
+      'rgba(220, 53, 69, 0.7)'
+    ];
+    
+    new Chart(compositionCtx, {
+      type: 'doughnut',
+      data: {
+        labels: activityNames,
+        datasets: [{
+          data: activityValues,
+          backgroundColor: activityColors,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: {
+          title: {
+            display: true,
+            text: '<%= studentData.姓名 %> 德育分构成'
+          }
+        }
+      }
+    });
+  });
+</script>
+
+<%- include('partials/footer') %> 

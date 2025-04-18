@@ -1,0 +1,155 @@
+<%- include('partials/header') %>
+
+<!-- 内容区域容器 -->
+<div class="container main-container">
+  <!-- 欢迎区域 -->
+  <div class="jumbotron mb-4 p-4 p-md-5 bg-light rounded-3 text-center position-relative overflow-hidden welcome-banner">
+    <div class="position-absolute top-0 start-0 w-100 h-100 welcome-banner-bg"></div>
+    <div class="position-relative">
+      <h1 class="display-5 fw-bold text-primary">计算机2308班级网页</h1>
+      <p class="lead">计算机科学与技术专业 2023级</p>
+    </div>
+  </div>
+
+  <!-- 系统导航卡片 -->
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 border-0 shadow-sm system-card">
+        <div class="card-body text-center p-4">
+          <div class="display-4 fw-bold text-primary mb-3">
+            <i class="bi bi-trophy"></i>
+          </div>
+          <h4 class="card-title mb-3">德育分管理系统</h4>
+          <p class="card-text mb-4">查看班级德育分数据，管理活动和积分</p>
+          <a href="/deyufen" class="btn btn-primary btn-lg w-100">进入系统</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 border-0 shadow-sm system-card">
+        <div class="card-body text-center p-4">
+          <div class="display-4 fw-bold text-success mb-3">
+            <i class="bi bi-clipboard-data"></i>
+          </div>
+          <h4 class="card-title mb-3">收集表系统</h4>
+          <p class="card-text mb-4">创建和管理班级信息收集表单</p>
+          <a href="/forms" class="btn btn-success btn-lg w-100">进入系统</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 其他系统卡片可以在这里添加 -->
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 border-0 shadow-sm system-card" style="opacity: 0.7;">
+        <div class="card-body text-center p-4">
+          <div class="display-4 fw-bold text-warning mb-3">
+            <i class="bi bi-calendar3"></i>
+          </div>
+          <h4 class="card-title mb-3">班级活动日历</h4>
+          <p class="card-text mb-4">班级活动安排与日程管理（未上线）</p>
+          <button class="btn btn-warning btn-lg w-100" disabled>即将开放</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 border-0 shadow-sm system-card" style="opacity: 0.7;">
+        <div class="card-body text-center p-4">
+          <div class="display-4 fw-bold text-warning mb-3">
+            <i class="bi bi-journal-text"></i>
+          </div>
+          <h4 class="card-title mb-3">班级通知公告</h4>
+          <p class="card-text mb-4">班级重要通知与公告系统（未上线）</p>
+          <button class="btn btn-warning btn-lg w-100" disabled>即将开放</button>
+        </div>
+      </div>
+    </div>
+  </div>
+      
+  <!-- 班级介绍 -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="card-title mb-0"><i class="bi bi-info-circle"></i> 班级介绍</h5>
+        </div>
+        <div class="card-body py-4">
+          <div class="row">
+            <div class="col-md-6 mb-4">
+              <h5><i class="bi bi-people-fill text-primary"></i> 班级概况</h5>
+              <p>计算机2308班是中南大学2023级计算机科学与技术专业的班级，现有学生30人。班级以"团结、进取、创新、实践"为宗旨，致力于培养高素质的计算机技术人才。</p>
+              
+              <h5 class="mt-4"><i class="bi bi-award text-success"></i> 班级荣誉</h5>
+              <ul>
+                <li>2023年校级优秀班集体</li>
+                <li>2023学年学习进步最快班级</li>
+                <li>2023年度校园文化活动优秀组织奖</li>
+              </ul>
+            </div>
+            <div class="col-md-6 mb-4">
+              <h5><i class="bi bi-cpu text-warning"></i> 专业特色</h5>
+              <p>计算机科学与技术专业注重理论与实践相结合，主要培养具备计算机硬件、软件与应用的基本理论、基本知识和基本技能，能在科研部门、教育单位、企业从事计算机科学与技术的教学、科研和应用的高级专门人才。</p>
+              
+              <h5 class="mt-4"><i class="bi bi-briefcase text-danger"></i> 就业方向</h5>
+              <p>毕业生可在IT行业、互联网企业、金融机构、政府部门等从事软件开发、系统维护、网络管理、数据分析、人工智能应用研发等工作。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 页面加载后初始化粒子背景
+  document.addEventListener('DOMContentLoaded', function() {
+    // 初始化粒子背景
+    if (typeof particlesJS !== 'undefined') {
+      particlesJS('particles-js', {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: '#0d6efd' },
+          shape: { type: 'circle' },
+          opacity: { value: 0.5, random: false },
+          size: { value: 3, random: true },
+          line_linked: { enable: true, distance: 150, color: '#0d6efd', opacity: 0.4, width: 1 },
+          move: { enable: true, speed: 2, direction: 'none', random: false, straight: false, out_mode: 'out' }
+        },
+        interactivity: {
+          detect_on: 'canvas',
+          events: {
+            onhover: { enable: true, mode: 'grab' },
+            onclick: { enable: true, mode: 'push' },
+            resize: true
+          }
+        }
+      });
+    }
+    
+    // 卡片悬停效果
+    const systemCards = document.querySelectorAll('.system-card');
+    systemCards.forEach(card => {
+      card.addEventListener('mouseenter', function() {
+        if (!this.querySelector('button[disabled]')) {
+          this.style.transform = 'translateY(-10px)';
+          this.style.boxShadow = '0 15px 30px rgba(0,0,0,0.1)';
+        }
+      });
+      
+      card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = '0 .125rem .25rem rgba(0,0,0,.075)';
+      });
+    });
+  });
+</script>
+
+<style>
+  .system-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+</style>
+
+<%- include('partials/footer') %> 

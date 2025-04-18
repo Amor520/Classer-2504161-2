@@ -1,0 +1,173 @@
+<%- include('partials/header') %>
+
+<div class="container main-container">
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0"><i class="bi bi-calendar-event"></i> 所有活动列表</h5>
+      <div>
+        <% if (hasAuth) { %>
+        <a href="/activity/auth" class="btn btn-sm btn-outline-light">
+          <i class="bi bi-plus-circle"></i> 添加活动
+        </a>
+        <% } else { %>
+        <a href="/activity/auth" class="btn btn-sm btn-outline-light">
+          <i class="bi bi-key"></i> 管理员入口
+        </a>
+        <% } %>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="row mb-4">
+        <div class="col-lg-8">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 本页面展示了所有班级活动，点击活动可查看详情和参与人员。
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="stats-card p-3 bg-light rounded text-center">
+            <div class="d-flex justify-content-around">
+              <div>
+                <h6>活动总数</h6>
+                <div class="display-6 text-success"><%= activities ? activities.length : 0 %></div>
+              </div>
+              <div>
+                <h6>最近活动</h6>
+                <div class="text-primary">
+                  <% if (activities && activities.length > 0) { %>
+                    <%= new Date(activities[0].活动日期).toLocaleDateString('zh-CN') %>
+                  <% } else { %>
+                    暂无
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <% if (activities && activities.length > 0) { %>
+        <div class="row">
+          <% activities.forEach(activity => { %>
+            <div class="col-md-6 col-xl-4 mb-4">
+              <div class="card h-100 activity-card border-0 shadow-sm hover-card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                  <h6 class="card-title mb-0 text-truncate"><%= activity.活动名称 %></h6>
+                  <% if (activity.默认分值 !== undefined) { %>
+                    <span class="badge bg-primary"><%= activity.默认分值 %> 分</span>
+                  <% } %>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <% if (activity.备注) { %>
+                      <p class="card-text text-muted small"><%= activity.备注.length > 60 ? activity.备注.substring(0, 60) + '...' : activity.备注 %></p>
+                    <% } else { %>
+                      <p class="card-text text-muted small">无活动描述</p>
+                    <% } %>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                      <i class="bi bi-calendar3"></i> 
+                      <%= activity.活动日期 ? new Date(activity.活动日期).toLocaleDateString('zh-CN') : '日期未定' %>
+                    </small>
+                    <a href="/activity/<%= activity.活动ID %>" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-eye"></i> 查看详情
+                    </a>
+                  </div>
+                </div>
+                <% if (hasAuth) { %>
+                <div class="card-footer bg-white border-top-0">
+                  <a href="/activity/assign/<%= activity.活动ID %>" class="btn btn-sm btn-outline-success w-100">
+                    <i class="bi bi-pencil"></i> 分配分值
+                  </a>
+                </div>
+                <% } %>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle"></i> 暂无活动数据
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %> 
+
+<style>
+  .hover-card {
+    transition: all 0.3s ease;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .hover-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.18) !important;
+  }
+  .activity-card .card-header {
+    padding: 0.75rem 1rem;
+    transition: background-color 0.3s ease;
+  }
+  .hover-card:hover .card-header {
+    background-color: #f0f8ff !important;
+  }
+  .hover-card:hover .badge {
+    transform: scale(1.05);
+  }
+  .badge {
+    transition: all 0.2s ease;
+  }
+  .hover-card .btn {
+    transition: all 0.3s ease;
+  }
+  .hover-card:hover .btn-outline-primary {
+    background-color: #0d6efd;
+    color: white;
+  }
+  .hover-card:hover .btn-outline-success {
+    background-color: #198754;
+    color: white;
+  }
+  .stats-card {
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+  }
+  .stats-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+    background-color: #f8f9fa !important;
+  }
+  .display-6 {
+    transition: all 0.3s ease;
+  }
+  .stats-card:hover .display-6 {
+    transform: scale(1.1);
+  }
+  .alert {
+    border-radius: 10px;
+    border-left: 4px solid #0dcaf0;
+    transition: all 0.3s ease;
+  }
+  .alert:hover {
+    box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.1);
+  }
+  
+  /* 动画效果 */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .card, .alert, .stats-card {
+    animation: fadeIn 0.5s ease forwards;
+  }
+  
+  .row > div:nth-child(1) { animation-delay: 0.1s; }
+  .row > div:nth-child(2) { animation-delay: 0.2s; }
+  .row > div:nth-child(3) { animation-delay: 0.3s; }
+  .row > div:nth-child(4) { animation-delay: 0.4s; }
+  .row > div:nth-child(5) { animation-delay: 0.5s; }
+  .row > div:nth-child(6) { animation-delay: 0.6s; }
+</style> 

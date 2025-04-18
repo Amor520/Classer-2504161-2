@@ -1,0 +1,77 @@
+  </div> <!-- content-wrapper 结束 -->
+
+  <footer class="footer mt-5 py-3 bg-dark text-white">
+    <div class="container main-container text-center">
+      <p class="mb-0">© <%= new Date().getFullYear() %> 计算机2308班 - 德育分管理系统</p>
+      <p class="mb-0"><small>计算机科学与技术 2023级</small></p>
+    </div>
+  </footer>
+
+  <!-- 使用国内CDN资源，添加defer属性延迟执行 -->
+  <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js" defer></script>
+  <!-- 将effects.js放在底部，优化页面加载速度 -->
+  <script src="/js/effects.js" defer></script>
+  
+  <!-- 只有在需要粒子效果的页面才初始化 -->
+  <script>
+    // 确保DOM加载完成并且particles.js已加载
+    window.addEventListener('load', function() {
+      if (document.getElementById('particles-js') && window.particlesJS) {
+        particlesJS('particles-js', {
+          "particles": {
+            "number": {
+              "value": 50, // 降低粒子数量，减少性能消耗
+              "density": {
+                "enable": true,
+                "value_area": 800
+              }
+            },
+            "color": {
+              "value": "#0d6efd"
+            },
+            "opacity": {
+              "value": 0.5,
+              "random": false
+            },
+            "size": {
+              "value": 3,
+              "random": true
+            },
+            "line_linked": {
+              "enable": true,
+              "distance": 150,
+              "color": "#0d6efd",
+              "opacity": 0.4,
+              "width": 1
+            },
+            "move": {
+              "enable": true,
+              "speed": 2, // 降低移动速度，减少性能消耗
+              "direction": "none",
+              "random": false,
+              "straight": false,
+              "out_mode": "out",
+              "bounce": false
+            }
+          },
+          "interactivity": {
+            "detect_on": "canvas",
+            "events": {
+              "onhover": {
+                "enable": true,
+                "mode": "grab"
+              },
+              "onclick": {
+                "enable": true,
+                "mode": "push"
+              },
+              "resize": true
+            }
+          },
+          "retina_detect": false // 禁用视网膜检测，减少性能消耗
+        });
+      }
+    });
+  </script>
+</body>
+</html> 

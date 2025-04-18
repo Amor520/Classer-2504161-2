@@ -1,0 +1,143 @@
+<%- include('partials/header') %>
+
+<div class="card shadow-sm mb-4 tech-card">
+  <div class="card-header bg-primary text-white">
+    <h5 class="card-title mb-0 tech-title"><i class="bi bi-card-checklist"></i> 德育分总览</h5>
+  </div>
+  <div class="card-body">
+    <!-- 排序选项 -->
+    <div class="d-flex justify-content-between mb-3">
+      <div>
+        <a href="/refresh-scores" class="btn btn-tech">
+          <i class="bi bi-arrow-clockwise"></i> 刷新所有总分
+        </a>
+      </div>
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-primary sort-btn" id="btnStudentId" data-sort="按学号排序">
+          <i class="bi bi-sort-numeric-down"></i> 按学号排序
+        </button>
+        <button type="button" class="btn btn-outline-primary active sort-btn" id="btnScoreDesc" data-sort="分数降序">
+          <i class="bi bi-sort-numeric-down"></i> 分数降序
+        </button>
+        <button type="button" class="btn btn-outline-primary sort-btn" id="btnScoreAsc" data-sort="分数升序">
+          <i class="bi bi-sort-numeric-up"></i> 分数升序
+        </button>
+        <button type="button" class="btn btn-outline-primary sort-btn" id="btnNameAsc" data-sort="按姓名">
+          <i class="bi bi-sort-alpha-down"></i> 按姓名
+        </button>
+      </div>
+    </div>
+    
+    <% if (deyufenData && deyufenData.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-hover" id="overviewTable">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center">排名</th>
+              <th>学号</th>
+              <th>姓名</th>
+              <th>总分</th>
+              <th>德育分可视化</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% deyufenData.forEach((student, index) => { %>
+              <tr>
+                <td class="text-center rank">
+                  <% if (index < 3) { %>
+                    <span class="badge rounded-pill fs-6 
+                      <%= index === 0 ? 'bg-warning' : (index === 1 ? 'bg-secondary' : 'bg-bronze') %>">
+                      <%= index + 1 %>
+                    </span>
+                  <% } else { %>
+                    <%= index + 1 %>
+                  <% } %>
+                </td>
+                <td class="student-id"><%= student.学号 %></td>
+                <td class="student-name"><a href="/student/<%= student.学号 %>"><%= student.姓名 %></a></td>
+                <td class="score"><%= student.总分 %></td>
+                <td>
+                  <div class="text-center">
+                    <span class="score-badge 
+                      <%= student.总分 >= 90 ? 'score-excellent' : 
+                         (student.总分 >= 80 ? 'score-good' : 
+                          (student.总分 >= 70 ? 'score-average' : 
+                           (student.总分 >= 60 ? 'score-pass' : 'score-fail'))) %>">
+                      <%= student.总分 %>分
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <a href="/student/<%= student.学号 %>" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye"></i> 查看详情
+                  </a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> 暂无德育分数据
+      </div>
+    <% } %>
+  </div>
+</div>
+
+
+
+<style>
+  .bg-bronze {
+    background-color: #cd7f32;
+    color: white;
+  }
+  
+  .score-badge {
+    display: inline-block;
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 20px;
+    min-width: 80px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  }
+  
+  .score-excellent {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+  }
+  
+  .score-good {
+    background: linear-gradient(135deg, #17a2b8, #0dcaf0);
+    color: white;
+  }
+  
+  .score-average {
+    background: linear-gradient(135deg, #0d6efd, #6610f2);
+    color: white;
+  }
+  
+  .score-pass {
+    background: linear-gradient(135deg, #fd7e14, #ffc107);
+    color: white;
+  }
+  
+  .score-fail {
+    background: linear-gradient(135deg, #dc3545, #f86b6b);
+    color: white;
+  }
+</style>
+
+<script>
+// 排序功能使用外部sorting.js文件实现
+
+// 页面加载完成
+document.addEventListener('DOMContentLoaded', function() {
+  // 排序功能由sorting.js处理
+});
+</script>
+
+<%- include('partials/footer') %> 

@@ -1,0 +1,224 @@
+<%- include('partials/header') %>
+
+<div class="container main-container">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm mb-5">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0"><i class="bi bi-calendar-event"></i> <%= activity.活动名称 %> 详情</h5>
+          <div>
+            <a href="/activities" class="btn btn-sm btn-outline-light">
+              <i class="bi bi-arrow-left"></i> 返回活动列表
+            </a>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row mb-4">
+            <div class="col-md-8">
+              <div class="info-card p-3 rounded bg-light mb-3">
+                <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-info-circle"></i> 活动基本信息</h5>
+                <div class="row mb-2">
+                  <div class="col-md-3 fw-bold">活动名称：</div>
+                  <div class="col-md-9"><%= activity.活动名称 %></div>
+                </div>
+                <% if (activity.备注) { %>
+                <div class="row mb-2">
+                  <div class="col-md-3 fw-bold">活动描述：</div>
+                  <div class="col-md-9"><%= activity.备注 %></div>
+                </div>
+                <% } %>
+                <div class="row mb-2">
+                  <div class="col-md-3 fw-bold">活动日期：</div>
+                  <div class="col-md-9">
+                    <span class="badge bg-primary">
+                      <i class="bi bi-calendar3"></i> 
+                      <%= activity.活动日期 ? new Date(activity.活动日期).toLocaleDateString('zh-CN') : '未设置' %>
+                    </span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-3 fw-bold">默认分值：</div>
+                  <div class="col-md-9">
+                    <span class="badge bg-warning text-dark"><%= activity.默认分值 || 0 %> 分</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-end">
+              <% if (hasAuth) { %>
+              <a href="/activity/assign/<%= activity.活动ID %>" class="btn btn-outline-success btn-lg mb-2 w-100">
+                <i class="bi bi-plus-circle"></i> 添加参与学生
+              </a>
+              <% } %>
+              <div class="stats-card bg-light p-3 rounded text-center">
+                <h6>参与人数</h6>
+                <div class="display-6 text-primary"><%= participants.length %></div>
+                <p class="text-muted small mb-0">总计 <%= participants.length %> 名同学参与</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card mb-4">
+            <div class="card-header bg-light">
+              <h5 class="card-title mb-0"><i class="bi bi-people"></i> 参与学生列表</h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                  <thead class="table-light">
+                    <tr>
+                      <th>学号</th>
+                      <th>姓名</th>
+                      <th>德育分</th>
+                      <% if (hasAuth) { %>
+                      <th width="120">操作</th>
+                      <% } %>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (participants && participants.length > 0) { %>
+                      <% participants.forEach((participant) => { %>
+                        <tr>
+                          <td><%= participant.学号 %></td>
+                          <td><a href="/student/<%= participant.学号 %>" class="text-decoration-none"><%= participant.姓名 %></a></td>
+                          <td>
+                            <span class="badge bg-success rounded-pill"><%= participant.加分 %></span>
+                          </td>
+                          <% if (hasAuth) { %>
+                          <td>
+                            <a href="/student/<%= participant.学号 %>/activity/<%= activity.活动ID %>/edit" class="btn btn-sm btn-outline-primary">
+                              <i class="bi bi-pencil"></i> 修改分值
+                            </a>
+                          </td>
+                          <% } %>
+                        </tr>
+                      <% }); %>
+                    <% } else { %>
+                      <tr>
+                        <td colspan="<%= hasAuth ? 4 : 3 %>" class="text-center">
+                          <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle"></i> 暂无参与学生
+                          </div>
+                        </td>
+                      </tr>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          
+          <div class="d-flex justify-content-between mt-3">
+            <a href="/activities" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> 返回活动列表
+            </a>
+            <a href="/overview" class="btn btn-outline-primary">
+              <i class="bi bi-card-checklist"></i> 查看德育分总览
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+<style>
+  /* 入场动画 */
+  @keyframes slideInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  /* 卡片动画 */
+  .card {
+    animation: slideInUp 0.5s ease forwards;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  /* 表格行动画 */
+  tbody tr {
+    transition: all 0.3s ease;
+    animation: fadeIn 0.5s ease forwards;
+  }
+  tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+    transform: translateX(5px);
+  }
+  
+  /* 延迟动画 */
+  .info-card {
+    animation-delay: 0.1s;
+    border-radius: 10px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+    transition: all 0.3s ease;
+  }
+  .info-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+  }
+  
+  .stats-card {
+    animation-delay: 0.2s;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+  }
+  .stats-card:hover {
+    background-color: #f8f9fa !important;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+  }
+  .stats-card:hover .display-6 {
+    transform: scale(1.1);
+    color: #0d6efd;
+  }
+  .display-6 {
+    transition: all 0.3s ease;
+  }
+  
+  /* 徽章样式 */
+  .badge {
+    transition: all 0.3s ease;
+  }
+  tr:hover .badge {
+    transform: scale(1.1);
+  }
+  
+  /* 按钮效果 */
+  .btn {
+    transition: all 0.3s ease;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
+  }
+  
+  /* 表格外观 */
+  .table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  
+  /* 卡片阴影 */
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+  }
+  
+  /* 空数据提示样式 */
+  .alert-info {
+    border-left: 4px solid #0dcaf0;
+    transition: all 0.3s ease;
+  }
+  .alert-info:hover {
+    background-color: #f0f9fc;
+  }
+</style> 

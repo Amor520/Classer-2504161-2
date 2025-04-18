@@ -1,0 +1,225 @@
+<%- include('partials/header') %>
+
+<!-- 内容区域容器 -->
+<div class="container main-container">
+  <!-- 欢迎区域 -->
+  <div class="jumbotron mb-4 p-4 p-md-5 bg-light rounded-3 text-center position-relative overflow-hidden welcome-banner">
+    <div class="position-absolute top-0 start-0 w-100 h-100 welcome-banner-bg"></div>
+    <div class="position-relative">
+      <h1 class="display-5 fw-bold text-primary">德育分管理系统</h1>
+      <p class="lead">计算机科学与技术专业 2308班 2023级</p>
+      <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
+        <a href="/overview" class="btn btn-primary px-4">
+          <i class="bi bi-card-checklist"></i> 德育分总览
+        </a>
+        <a href="/activity/auth" class="btn btn-outline-success px-4">
+          <i class="bi bi-plus-circle"></i> 添加活动
+        </a>
+        <a href="/refresh-scores" class="btn btn-outline-warning px-4">
+          <i class="bi bi-arrow-repeat"></i> 更新总分
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 数据概览卡片 -->
+  <div class="row mb-4 stats-overview">
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="display-4 fw-bold text-primary mb-2">
+            <i class="bi bi-people"></i>
+          </div>
+          <h5 class="card-title">学生人数</h5>
+          <p class="fs-4 fw-bold mb-0"><%= deyufenData ? deyufenData.length : 0 %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="display-4 fw-bold text-success mb-2">
+            <i class="bi bi-calendar-event"></i>
+          </div>
+          <h5 class="card-title">活动总数</h5>
+          <p class="fs-4 fw-bold mb-0"><%= activities ? activities.length : 0 %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="display-4 fw-bold text-warning mb-2">
+            <i class="bi bi-trophy"></i>
+          </div>
+          <h5 class="card-title">最高德育分</h5>
+          <p class="fs-4 fw-bold mb-0">
+            <% if (deyufenData && deyufenData.length > 0) { %>
+              <%= deyufenData[0].总分 %>
+            <% } else { %>
+              0
+            <% } %>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+      
+  <div class="row">
+    <!-- 德育分统计 -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0"><i class="bi bi-people"></i> 德育分排名 (前5名)</h5>
+          <a href="/overview" class="btn btn-sm btn-outline-light">查看全部</a>
+        </div>
+        <div class="card-body">
+          <% if (deyufenData && deyufenData.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>排名</th>
+                    <th>学号</th>
+                    <th>姓名</th>
+                    <th>总分</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% deyufenData.slice(0, 5).forEach((student, index) => { %>
+                    <tr>
+                      <td>
+                        <% if (index === 0) { %>
+                          <span class="badge bg-warning">1</span>
+                        <% } else if (index === 1) { %>
+                          <span class="badge bg-secondary">2</span>
+                        <% } else if (index === 2) { %>
+                          <span class="badge bg-bronze">3</span>
+                        <% } else { %>
+                          <%= index + 1 %>
+                        <% } %>
+                      </td>
+                      <td><%= student.学号 %></td>
+                      <td><a href="/student/<%= student.学号 %>" class="text-decoration-none"><%= student.姓名 %></a></td>
+                      <td>
+                        <span class="badge bg-primary rounded-pill"><%= student.总分 %></span>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle"></i> 暂无德育分数据
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 最近活动 -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0"><i class="bi bi-calendar-event"></i> 最近活动</h5>
+          <a href="/activities" class="btn btn-sm btn-outline-light">查看所有活动</a>
+        </div>
+        <div class="card-body">
+          <% if (activities && activities.length > 0) { %>
+            <div class="list-group">
+              <% activities.slice(0, 5).forEach((activity) => { %>
+                <a href="/activity/<%= activity.活动ID %>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="mb-1"><%= activity.活动名称 %></h6>
+                    <small class="text-muted">
+                      <i class="bi bi-calendar3"></i> 
+                      <%= activity.活动日期 ? new Date(activity.活动日期).toLocaleDateString('zh-CN') : '日期未定' %>
+                    </small>
+                  </div>
+                  <span class="badge bg-primary rounded-pill">查看</span>
+                </a>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle"></i> 暂无活动数据
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+      
+  <!-- 班级特色展示区域 -->
+  <div class="row mt-2">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="card-title mb-0"><i class="bi bi-cpu"></i> 计算机2308班特色</h5>
+        </div>
+        <div class="card-body py-4">
+          <div class="row">
+            <div class="col-md-4 mb-4">
+              <div class="feature-item text-center p-3 h-100">
+                <div class="feature-icon mb-3">
+                  <i class="bi bi-code-slash display-4 text-primary"></i>
+                </div>
+                <h5>编程创新</h5>
+                <p class="text-muted">培养创新思维，掌握扎实的编程基础和前沿技术</p>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="feature-item text-center p-3 h-100">
+                <div class="feature-icon mb-3">
+                  <i class="bi bi-people display-4 text-success"></i>
+                </div>
+                <h5>团队协作</h5>
+                <p class="text-muted">注重团队协作能力，共同参与项目实践与竞赛活动</p>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="feature-item text-center p-3 h-100">
+                <div class="feature-icon mb-3">
+                  <i class="bi bi-lightbulb display-4 text-warning"></i>
+                </div>
+                <h5>创新实践</h5>
+                <p class="text-muted">结合理论与实践，培养解决实际问题的能力</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 页面加载后初始化粒子背景
+  document.addEventListener('DOMContentLoaded', function() {
+    // 初始化粒子背景
+    if (typeof particlesJS !== 'undefined') {
+      particlesJS('particles-js', {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: '#0d6efd' },
+          shape: { type: 'circle' },
+          opacity: { value: 0.5, random: false },
+          size: { value: 3, random: true },
+          line_linked: { enable: true, distance: 150, color: '#0d6efd', opacity: 0.4, width: 1 },
+          move: { enable: true, speed: 2, direction: 'none', random: false, straight: false, out_mode: 'out' }
+        },
+        interactivity: {
+          detect_on: 'canvas',
+          events: {
+            onhover: { enable: true, mode: 'grab' },
+            onclick: { enable: true, mode: 'push' },
+            resize: true
+          }
+        }
+      });
+    }
+  });
+</script>
+
+<%- include('partials/footer') %> 

@@ -1,0 +1,33 @@
+<%
+// 确保title变量存在
+const pageTitle = typeof title !== 'undefined' ? title : '出错了';
+%>
+<%- include('partials/header', { title: pageTitle }) %>
+
+<div class="container main-container">
+  <div class="row justify-content-center my-5">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center p-5">
+          <div class="mb-4">
+            <i class="bi bi-exclamation-triangle-fill text-danger display-1"></i>
+          </div>
+          <h2 class="card-title mb-4"><%= pageTitle %></h2>
+          <div class="alert alert-danger mb-4">
+            <p class="mb-0"><%= message %></p>
+          </div>
+          <div class="mt-4">
+            <button onclick="window.history.back();" class="btn btn-outline-secondary me-2">
+              <i class="bi bi-arrow-left"></i> 返回上一页
+            </button>
+            <a href="/" class="btn btn-primary">
+              <i class="bi bi-house"></i> 返回首页
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %> 

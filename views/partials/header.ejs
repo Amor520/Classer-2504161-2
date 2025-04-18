@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="renderer" content="webkit">
+  <title><%= typeof title !== 'undefined' ? title : '计算机2308班' %> - 计算机2308班</title>
+  
+  <!-- 预加载和DNS预解析，加速资源加载 -->
+  <link rel="dns-prefetch" href="https://cdn.bootcdn.net">
+  <link rel="preload" href="/css/style.css" as="style">
+  
+  <!-- 使用国内CDN - BootCDN -->
+  <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/tech-theme.css">
+  
+  <!-- 异步加载非关键JS资源 -->
+  <script src="https://cdn.bootcdn.net/ajax/libs/chart.js/3.9.1/chart.min.js" async defer></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/particles.js/2.0.0/particles.min.js" async defer></script>
+  <script src="/js/sorting.js" defer></script>
+  <script src="/js/tech-effects.js" defer></script>
+  
+  <!-- 字体使用国内CDN，使用swap确保文字先显示 -->
+  <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
+</head>
+<body>
+  <!-- 粒子背景 -->
+  <div id="particles-js" class="particles-background"></div>
+  
+  <!-- 导航栏 -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+    <div class="container main-container">
+      <a class="navbar-brand" href="/"><i class="bi bi-pc-display"></i> 计算机2308班</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link <%= typeof active !== 'undefined' && active === 'class-home' ? 'active' : '' %>" href="/"><i class="bi bi-house"></i> 班级主页</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= typeof active !== 'undefined' && active === 'forms-home' ? 'active' : '' %>" href="/forms"><i class="bi bi-clipboard-data"></i> 收集表系统</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= typeof active !== 'undefined' && active === 'home' ? 'active' : '' %>" href="/deyufen"><i class="bi bi-trophy"></i> 德育分系统</a>
+          </li>
+          
+          <% if (typeof active !== 'undefined' && (active === 'home' || active === 'overview' || active === 'activities')) { %>
+          <li class="nav-item">
+            <a class="nav-link <%= typeof active !== 'undefined' && active === 'overview' ? 'active' : '' %>" href="/overview"><i class="bi bi-card-checklist"></i> 德育分总览</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle <%= typeof active !== 'undefined' && active === 'activity' ? 'active' : '' %>" href="#" 
+               id="activityDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-calendar-event"></i> 活动管理
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="activityDropdown">
+              <li><a class="dropdown-item" href="/activities"><i class="bi bi-list-ul"></i> 查看所有活动</a></li>
+              <li><a class="dropdown-item" href="/activity/add"><i class="bi bi-plus-circle"></i> 添加活动</a></li>
+              <!-- 可以添加更多活动管理相关的菜单项 -->
+            </ul>
+          </li>
+          <% } %>
+          
+          <% if (typeof active !== 'undefined' && active === 'forms') { %>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" 
+               id="formsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-file-earmark-text"></i> 表单管理
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="formsDropdown">
+              <li><a class="dropdown-item" href="/forms/all"><i class="bi bi-list-ul"></i> 所有表单</a></li>
+              <li><a class="dropdown-item" href="/forms/create"><i class="bi bi-plus-circle"></i> 创建表单</a></li>
+              <li><a class="dropdown-item" href="/forms/submissions"><i class="bi bi-inbox"></i> 提交记录</a></li>
+            </ul>
+          </li>
+          <% } %>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-4 d-none">
+    <div class="page-header mb-4">
+      <h1><%= typeof title !== 'undefined' ? title : '计算机2308班' %></h1>
+    </div>
+  </div>
+
+  <!-- 内容容器开始 -->
+  <div class="content-wrapper">
+    <!-- 系统消息显示区域 -->
+    <% if (typeof message !== 'undefined' && message) { %>
+      <div class="container mt-5 pt-3">
+        <div class="alert alert-<%= message.type %> alert-dismissible fade show" role="alert">
+          <%= message.text %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      </div>
+    <% } %>
+</body>
+</html> 

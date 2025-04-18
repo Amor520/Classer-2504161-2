@@ -1,0 +1,290 @@
+<%- include('partials/header') %>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-primary text-white">
+    <h5 class="card-title mb-0"><i class="bi bi-bar-chart"></i> 德育分排名</h5>
+  </div>
+  <div class="card-body">
+    <div class="d-flex justify-content-end mb-3">
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-primary active" id="btnScoreDesc">
+          <i class="bi bi-sort-numeric-down"></i> 分数降序
+        </button>
+        <button type="button" class="btn btn-outline-primary" id="btnScoreAsc">
+          <i class="bi bi-sort-numeric-up"></i> 分数升序
+        </button>
+        <button type="button" class="btn btn-outline-primary" id="btnNameAsc">
+          <i class="bi bi-sort-alpha-down"></i> 按姓名
+        </button>
+      </div>
+    </div>
+    
+    <% if (deyufenData && deyufenData.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-hover" id="rankingTable">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center">排名</th>
+              <th>学号</th>
+              <th>姓名</th>
+              <th>总分</th>
+              <th>德育分可视化</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% deyufenData.forEach((student, index) => { %>
+              <tr>
+                <td class="text-center rank">
+                  <% if (index < 3) { %>
+                    <span class="badge rounded-pill fs-6 
+                      <%= index === 0 ? 'bg-warning' : (index === 1 ? 'bg-secondary' : 'bg-bronze') %>">
+                      <%= index + 1 %>
+                    </span>
+                  <% } else { %>
+                    <%= index + 1 %>
+                  <% } %>
+                </td>
+                <td><%= student.学号 %></td>
+                <td><a href="/student/<%= student.学号 %>"><%= student.姓名 %></a></td>
+                <td class="score"><%= student.总分 %></td>
+                <td>
+                  <div class="text-center">
+                    <span class="score-badge 
+                      <%= student.总分 >= 90 ? 'score-excellent' : 
+                         (student.总分 >= 80 ? 'score-good' : 
+                          (student.总分 >= 70 ? 'score-average' : 
+                           (student.总分 >= 60 ? 'score-pass' : 'score-fail'))) %>">
+                      <%= student.总分 %>分
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> 暂无德育分数据
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- 图表区域 -->
+<div class="row">
+  <div class="col-12 mb-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-graph-up"></i> 班级德育分排名可视化</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="rankingChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .bg-bronze {
+    background-color: #cd7f32;
+    color: white;
+  }
+  
+  .score-badge {
+    display: inline-block;
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 20px;
+    min-width: 80px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  }
+  
+  .score-excellent {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+  }
+  
+  .score-good {
+    background: linear-gradient(135deg, #17a2b8, #0dcaf0);
+    color: white;
+  }
+  
+  .score-average {
+    background: linear-gradient(135deg, #0d6efd, #6610f2);
+    color: white;
+  }
+  
+  .score-pass {
+    background: linear-gradient(135deg, #fd7e14, #ffc107);
+    color: white;
+  }
+  
+  .score-fail {
+    background: linear-gradient(135deg, #dc3545, #f86b6b);
+    color: white;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM fully loaded - initializing sorting functionality');
+  
+  // 获取按钮和表格元素
+  const btnScoreDesc = document.getElementById('btnScoreDesc');
+  const btnScoreAsc = document.getElementById('btnScoreAsc');
+  const btnNameAsc = document.getElementById('btnNameAsc');
+  const table = document.getElementById('rankingTable');
+  
+  if (!table) {
+    console.error('排名表格未找到!');
+    return;
+  }
+  
+  const tbody = table.querySelector('tbody');
+  if (!tbody) {
+    console.error('表格的tbody未找到!');
+    return;
+  }
+  
+  console.log('表格行数:', tbody.rows.length);
+  
+  // 存储原始数据以便排序
+  const originalRows = Array.from(tbody.rows);
+  console.log('原始行数据已保存, 行数:', originalRows.length);
+  
+  // 排序函数
+  function sortTableRows(criteria, order) {
+    console.log(`开始排序: ${criteria}, ${order}`);
+    
+    // 克隆原始行数组以便排序
+    const rows = [...originalRows];
+    
+    if (criteria === 'score') {
+      rows.sort((a, b) => {
+        const scoreA = parseFloat(a.querySelector('.score').textContent);
+        const scoreB = parseFloat(b.querySelector('.score').textContent);
+        console.log(`比较分数: ${scoreA} vs ${scoreB}`);
+        return order === 'asc' ? scoreA - scoreB : scoreB - scoreA;
+      });
+    } 
+    else if (criteria === 'name') {
+      rows.sort((a, b) => {
+        // 获取姓名单元格
+        const nameA = a.cells[2].textContent.trim();
+        const nameB = b.cells[2].textContent.trim();
+        console.log(`比较姓名: ${nameA} vs ${nameB}`);
+        return nameA.localeCompare(nameB, 'zh-CN');
+      });
+    }
+    
+    // 清空表格主体
+    while (tbody.firstChild) {
+      tbody.removeChild(tbody.firstChild);
+    }
+    
+    // 添加排序后的行
+    rows.forEach((row, index) => {
+      const newRow = row.cloneNode(true);
+      const rankCell = newRow.cells[0];
+      
+      // 更新排名
+      if (index < 3) {
+        rankCell.innerHTML = `
+          <span class="badge rounded-pill fs-6 
+            ${index === 0 ? 'bg-warning' : (index === 1 ? 'bg-secondary' : 'bg-bronze')}">
+            ${index + 1}
+          </span>
+        `;
+      } else {
+        rankCell.textContent = index + 1;
+      }
+      
+      tbody.appendChild(newRow);
+    });
+    
+    console.log('排序完成');
+  }
+  
+  // 添加按钮点击事件
+  if (btnScoreDesc) {
+    btnScoreDesc.addEventListener('click', function() {
+      console.log('点击了分数降序按钮');
+      sortTableRows('score', 'desc');
+      updateButtonStates(this);
+    });
+    console.log('分数降序按钮事件已绑定');
+  } else {
+    console.error('分数降序按钮未找到!');
+  }
+  
+  if (btnScoreAsc) {
+    btnScoreAsc.addEventListener('click', function() {
+      console.log('点击了分数升序按钮');
+      sortTableRows('score', 'asc');
+      updateButtonStates(this);
+    });
+    console.log('分数升序按钮事件已绑定');
+  } else {
+    console.error('分数升序按钮未找到!');
+  }
+  
+  if (btnNameAsc) {
+    btnNameAsc.addEventListener('click', function() {
+      console.log('点击了姓名排序按钮');
+      sortTableRows('name', 'asc');
+      updateButtonStates(this);
+    });
+    console.log('姓名排序按钮事件已绑定');
+  } else {
+    console.error('姓名排序按钮未找到!');
+  }
+  
+  // 更新按钮状态
+  function updateButtonStates(activeButton) {
+    [btnScoreDesc, btnScoreAsc, btnNameAsc].forEach(btn => {
+      if (btn) btn.classList.remove('active');
+    });
+    
+    if (activeButton) activeButton.classList.add('active');
+  }
+  
+  // 初始化图表
+  <% if (deyufenData && deyufenData.length > 0) { %>
+  const rankingCtx = document.getElementById('rankingChart').getContext('2d');
+  const rankingChart = new Chart(rankingCtx, {
+    type: 'bar',
+    data: {
+      labels: [<% deyufenData.forEach((student, index) => { %>'<%= student.姓名 %>'<%= index < deyufenData.length - 1 ? ',' : '' %><% }); %>],
+      datasets: [{
+        label: '德育分',
+        data: [<% deyufenData.forEach((student, index) => { %><%= student.总分 %><%= index < deyufenData.length - 1 ? ',' : '' %><% }); %>],
+        backgroundColor: [<% deyufenData.forEach((student, index) => { %>
+          'rgba(<%= 100 - (student.总分 / 100 * 50) %>, <%= 100 + (student.总分 / 100 * 100) %>, 255, 0.7)'<%= index < deyufenData.length - 1 ? ',' : '' %><% }); %>],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      plugins: {
+        title: {
+          display: true,
+          text: '班级德育分排名'
+        },
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+  <% } %>
+});
+</script>
+
+<%- include('partials/footer') %> 

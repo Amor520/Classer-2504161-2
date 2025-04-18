@@ -1,0 +1,44 @@
+<%- include('partials/header') %>
+
+<div class="container main-container">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="card shadow-sm mb-5">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0"><i class="bi bi-plus-circle"></i> 添加活动</h5>
+        </div>
+        <div class="card-body">
+          <form action="/activity/add" method="post">
+            <div class="mb-3">
+              <label for="name" class="form-label">活动名称 <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            
+            <div class="mb-3">
+              <label for="description" class="form-label">备注</label>
+              <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            
+            <div class="mb-3">
+              <label for="date" class="form-label">活动日期 <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="date" name="date" required>
+            </div>
+            
+            <div class="mb-3">
+              <label for="defaultScore" class="form-label">默认分值 <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="defaultScore" name="defaultScore" min="0" step="0.5" value="1" required>
+              <div class="form-text">设置参与该活动的默认德育分值，后续可针对个别学生调整</div>
+            </div>
+            
+            <div class="text-end">
+              <a href="/" class="btn btn-outline-secondary me-2">取消</a>
+              <button type="submit" class="btn btn-primary">添加活动</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %> 
