@@ -1,5 +1,15 @@
 /* 技术主题风格增强 */
 
+/* 检查此处可能存在的卡片悬停效果，并禁用相关的transform变换 */
+/* 在文件顶部添加禁用卡片悬停变换的全局样式 */
+.card:hover,
+.card-container:hover,
+.card-wrapper:hover,
+.card *:hover {
+  transform: none !important;
+  transition: box-shadow 0.3s ease !important;
+}
+
 /* 渐变按钮 */
 .btn-primary {
   background: linear-gradient(45deg, #0d6efd, #0a58ca);

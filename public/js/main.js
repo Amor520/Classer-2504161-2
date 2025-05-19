@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // 初始化粒子特效
   initParticles();
   
-  // 添加卡片动画效果
+  // 添加卡片动画效果 - 已禁用上浮效果
   initCardAnimations();
   
   // 为导航栏中当前页面链接添加active类
@@ -40,7 +40,8 @@ function initCardAnimations() {
   const cards = document.querySelectorAll('.card');
   cards.forEach(card => {
     card.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateY(-5px)';
+      // 移除上浮效果，仅保留阴影变化
+      this.style.transform = 'translateY(0)'; // 保持位置不变
       this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.1)';
     });
     

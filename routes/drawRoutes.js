@@ -20,7 +20,16 @@ router.post('/api/reset', DrawController.resetDrawPool);
 // API接口：获取抽签池状态
 router.get('/api/status', DrawController.getDrawPoolStatus);
 
-// API接口：删除抽签历史记录
+// API接口：删除单条抽签历史记录
 router.delete('/api/delete-record/:id', DrawController.deleteDrawHistory);
+
+// API接口：删除所有抽签历史记录
+router.delete('/api/delete-all-records', DrawController.deleteAllDrawHistory);
+
+// API接口：获取抽签历史记录详情
+router.get('/api/history/:id', DrawController.getDrawHistoryById);
+
+// API接口：获取所有抽签历史记录
+router.get('/api/history', DrawController.getAllDrawHistory);
 
 module.exports = router; 

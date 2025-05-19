@@ -3,6 +3,38 @@
 <!-- 添加抽签池专用样式 -->
 <link rel="stylesheet" href="/css/draw-style.css">
 
+<!-- 添加抽签结果项样式 -->
+<style>
+/* 抽签结果项样式 */
+.result-item, .student-item {
+  padding: 6px 12px;
+  border-radius: 20px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  font-size: 0.9rem;
+  animation: fadeIn 0.5s ease forwards;
+  transition: all 0.3s ease;
+}
+
+.result-item.signed, .student-item.signed {
+  background-color: #cff4fc;
+  border-color: #b6effb;
+  color: #055160;
+}
+
+.result-item.random, .student-item.random {
+  background-color: #fff3cd;
+  border-color: #ffe69c;
+  color: #664d03;
+}
+
+.student-item.excluded {
+  background-color: #f8d7da;
+  border-color: #f5c2c7;
+  color: #842029;
+}
+</style>
+
 <!-- 内容区域容器 -->
 <div class="container main-container mt-4">
   <!-- 欢迎区域 -->
@@ -71,7 +103,7 @@
           <div id="drawPoolContainer" class="draw-pool-wrapper">
             <!-- 左侧未抽区域 -->
             <div id="availablePool" class="draw-pool-side p-2">
-              <h6 class="<%= typeof session !== 'undefined' && session.admin ? 'text-primary' : 'text-info' %>">未抽学生</h6>
+              <h6 class="<%= typeof session !== 'undefined' && session.admin ? 'text-primary' : 'text-info' %> text-center mb-3">未抽学生</h6>
               <div class="draw-pool-items">
                 <% if (availableStudents && availableStudents.length > 0) { %>
                   <% availableStudents.forEach(student => { %>
@@ -89,7 +121,7 @@
             
             <!-- 右侧已抽区域 -->
             <div id="drawnPool" class="draw-pool-side p-2">
-              <h6 class="text-success">已抽学生</h6>
+              <h6 class="text-success text-center mb-3">已抽学生</h6>
               <div class="draw-pool-items">
                 <% if (drawnStudents && drawnStudents.length > 0) { %>
                   <% drawnStudents.forEach(student => { %>
@@ -134,6 +166,66 @@
               <label for="drawCount" class="form-label">抽签数量</label>
               <input type="number" class="form-control" id="drawCount" min="1" value="1" required>
               <div class="invalid-feedback">请输入有效的抽签数量</div>
+            </div>
+            
+            <!-- 已报名参加学生选择 -->
+            <div class="mb-3">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span>已报名参加学生</span>
+                <button type="button" class="btn btn-sm btn-outline-info" id="toggleSignedStudents">
+                  <i class="bi bi-eye"></i> 显示/隐藏
+                </button>
+              </label>
+              <div id="signedStudentsContainer" class="signed-students-container mb-2 d-none">
+                <div class="form-text mb-2">选择的学生将自动加入抽签结果（不影响抽签池）</div>
+                <div id="signedStudentsCheckboxes" class="student-checkboxes">
+                  <% if (availableStudents && availableStudents.length > 0) { %>
+                    <% availableStudents.forEach(student => { %>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input signed-student-checkbox" type="checkbox" value="<%= student.id %>" id="signed_<%= student.id %>" name="signedStudents">
+                        <label class="form-check-label" for="signed_<%= student.id %>"><%= student.name %></label>
+                      </div>
+                    <% }); %>
+                  <% } %>
+                  <% if (drawnStudents && drawnStudents.length > 0) { %>
+                    <% drawnStudents.forEach(student => { %>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input signed-student-checkbox" type="checkbox" value="<%= student.id %>" id="signed_<%= student.id %>" name="signedStudents">
+                        <label class="form-check-label" for="signed_<%= student.id %>"><%= student.name %></label>
+                      </div>
+                    <% }); %>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 不参与抽签学生选择 -->
+            <div class="mb-3">
+              <label class="form-label d-flex justify-content-between align-items-center">
+                <span>不参与抽签学生</span>
+                <button type="button" class="btn btn-sm btn-outline-warning" id="toggleExcludedStudents">
+                  <i class="bi bi-eye"></i> 显示/隐藏
+                </button>
+              </label>
+              <div id="excludedStudentsContainer" class="excluded-students-container mb-2 d-none">
+                <div class="form-text mb-2">选择的学生将被排除在抽签结果之外</div>
+                <div id="excludedStudentsCheckboxes" class="student-checkboxes">
+                  <% if (availableStudents && availableStudents.length > 0) { %>
+                    <% availableStudents.forEach(student => { %>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input excluded-student-checkbox" type="checkbox" value="<%= student.id %>" id="excluded_<%= student.id %>" name="excludedStudents">
+                        <label class="form-check-label" for="excluded_<%= student.id %>"><%= student.name %></label>
+                      </div>
+                    <% }); %>
+                  <% } %>
+                </div>
+                
+                <!-- 不参与原因输入 -->
+                <div class="mt-2">
+                  <label for="excludeReason" class="form-label">不参与原因：</label>
+                  <input type="text" class="form-control" id="excludeReason" placeholder="请输入不参与原因">
+                </div>
+              </div>
             </div>
             
             <input type="hidden" id="isAdmin" value="<%= typeof session !== 'undefined' && session.admin ? 'true' : 'false' %>">
@@ -208,9 +300,7 @@
                     <th>抽签数量</th>
                     <th style="min-width: 200px;">抽中学生</th>
                     <th>抽签时间</th>
-                    <% if (typeof session !== 'undefined' && session.admin) { %>
-                      <th>操作</th>
-                    <% } %>
+                    <th>操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -232,18 +322,39 @@
                         </div>
                       </td>
                       <td><%= new Date(record.created_at).toLocaleString('zh-CN') %></td>
-                      <% if (typeof session !== 'undefined' && session.admin) { %>
-                        <td>
-                          <button class="btn btn-sm btn-outline-danger delete-record" data-id="<%= record.id %>">
+                      <td>
+                        <div class="d-flex gap-1">
+                          <button class="btn btn-sm btn-outline-primary view-draw-detail" 
+                                 data-id="<%= record.id %>" 
+                                 data-names="<%= record.drawn_names %>" 
+                                 data-activity="<%= record.activity_name %>"
+                                 data-count="<%= record.draw_count %>"
+                                 data-time="<%= new Date(record.created_at).toLocaleString('zh-CN') %>"
+                                 data-signed="<%= typeof record.signed_names !== 'undefined' ? record.signed_names || '' : '' %>"
+                                 data-excluded="<%= typeof record.excluded_names !== 'undefined' ? record.excluded_names || '' : '' %>"
+                                 data-exclude-reason="<%= typeof record.exclude_reason !== 'undefined' ? record.exclude_reason || '' : '' %>">
+                            <i class="bi bi-card-list"></i> 详情
+                          </button>
+                          <button class="btn btn-sm btn-outline-danger delete-record" 
+                                 data-id="<%= record.id %>" 
+                                 data-names="<%= record.drawn_names %>">
                             <i class="bi bi-trash"></i>
                           </button>
-                        </td>
-                      <% } %>
+                        </div>
+                      </td>
                     </tr>
                   <% }); %>
                 </tbody>
               </table>
             </div>
+            
+            <% if (typeof session !== 'undefined' && session.admin && session.admin.role === 2) { %>
+              <div class="d-flex justify-content-end mt-3">
+                <button id="deleteAllRecords" class="btn btn-danger">
+                  <i class="bi bi-trash"></i> 清空全部历史记录
+                </button>
+              </div>
+            <% } %>
             
             <% if (history.length > 10) { %>
               <div class="d-flex justify-content-center mt-3">
@@ -284,6 +395,123 @@
   </div>
 </div>
 
+<!-- 抽签历史详情模态框 -->
+<div class="modal fade" id="drawDetailModal" tabindex="-1" aria-labelledby="drawDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header draw-detail-header">
+        <h5 class="modal-title" id="drawDetailModalLabel">抽签历史详情</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="card draw-detail-card">
+              <div class="card-header">
+                <h6 class="mb-0">基本信息</h6>
+              </div>
+              <div class="card-body">
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>活动名称</span>
+                    <span id="detailActivityName" class="fw-bold text-primary"></span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>抽签数量</span>
+                    <span id="detailDrawCount" class="fw-bold text-primary"></span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>抽签时间</span>
+                    <span id="detailDrawTime" class="fw-bold text-primary"></span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card draw-detail-card h-100">
+              <div class="card-header">
+                <h6 class="mb-0">统计数据</h6>
+              </div>
+              <div class="card-body d-flex flex-column justify-content-center">
+                <div class="text-center p-2">
+                  <div class="display-4 fw-bold text-success" id="detailTotalStudents">0</div>
+                  <div class="text-muted">总人数</div>
+                </div>
+                <div class="d-flex justify-content-around mt-3">
+                  <div class="text-center p-2">
+                    <div class="h4 fw-bold text-info" id="detailSignedCount">0</div>
+                    <div class="text-muted small">已报名</div>
+                  </div>
+                  <div class="text-center p-2">
+                    <div class="h4 fw-bold text-warning" id="detailRandomCount">0</div>
+                    <div class="text-muted small">随机抽取</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card draw-detail-card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">抽中学生名单</h6>
+            <div class="btn-group">
+              <button type="button" class="btn btn-sm btn-outline-primary" id="viewAllStudents">全部</button>
+              <button type="button" class="btn btn-sm btn-outline-info" id="viewSignedStudents">已报名</button>
+              <button type="button" class="btn btn-sm btn-outline-warning" id="viewRandomStudents">随机抽取</button>
+              <button type="button" class="btn btn-sm btn-outline-danger" id="viewExcludedStudents">不参与</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="detailStudentsList" class="d-flex flex-wrap gap-2 justify-content-center mt-3"></div>
+            
+            <!-- 不参与抽签原因显示区域 -->
+            <div id="excludeReasonContainer" class="alert alert-warning mt-3 d-none">
+              <strong>不参与原因:</strong> <span id="detailExcludeReason"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteConfirmModalLabel">确认删除</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <p id="deleteConfirmMessage" class="mb-4"></p>
+        
+        <div class="form-group">
+          <label for="deleteConfirmText" class="form-label">请输入 <strong>确认删除</strong> 以继续：</label>
+          <input type="text" class="form-control" id="deleteConfirmText" placeholder="确认删除">
+          <div class="invalid-feedback">请输入正确的确认文本</div>
+        </div>
+        
+        <div class="form-check mt-3" id="restoreCheckContainer">
+          <input class="form-check-input" type="checkbox" id="restoreDrawnStudents">
+          <label class="form-check-label" for="restoreDrawnStudents">
+            同时将抽中的学生恢复到抽签池
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // 元素引用
@@ -305,6 +533,30 @@
     
     // 检查用户是否是管理员
     const isAdmin = document.getElementById('isAdmin').value === 'true';
+    
+    // 学生选择区域的展开/收起功能
+    const toggleSignedStudents = document.getElementById('toggleSignedStudents');
+    const signedStudentsContainer = document.getElementById('signedStudentsContainer');
+    const toggleExcludedStudents = document.getElementById('toggleExcludedStudents');
+    const excludedStudentsContainer = document.getElementById('excludedStudentsContainer');
+    
+    if (toggleSignedStudents) {
+      toggleSignedStudents.addEventListener('click', function() {
+        signedStudentsContainer.classList.toggle('d-none');
+        this.innerHTML = signedStudentsContainer.classList.contains('d-none') ? 
+          '<i class="bi bi-eye"></i> 显示/隐藏' : 
+          '<i class="bi bi-eye-slash"></i> 显示/隐藏';
+      });
+    }
+    
+    if (toggleExcludedStudents) {
+      toggleExcludedStudents.addEventListener('click', function() {
+        excludedStudentsContainer.classList.toggle('d-none');
+        this.innerHTML = excludedStudentsContainer.classList.contains('d-none') ? 
+          '<i class="bi bi-eye"></i> 显示/隐藏' : 
+          '<i class="bi bi-eye-slash"></i> 显示/隐藏';
+      });
+    }
     
     // 初始化抽签池
     if (initPoolBtn) {
@@ -389,6 +641,22 @@
       const activityName = activityNameInput.value;
       const count = parseInt(drawCountInput.value);
       
+      // 获取已报名学生
+      const signedStudents = Array.from(document.querySelectorAll('.signed-student-checkbox:checked')).map(checkbox => ({
+        id: checkbox.value,
+        name: checkbox.nextElementSibling.textContent.trim(),
+        isSigned: true
+      }));
+      
+      // 获取不参与抽签学生
+      const excludedStudents = Array.from(document.querySelectorAll('.excluded-student-checkbox:checked')).map(checkbox => ({
+        id: checkbox.value,
+        name: checkbox.nextElementSibling.textContent.trim()
+      }));
+      
+      // 获取不参与原因
+      const excludeReason = document.getElementById('excludeReason').value;
+      
       // 显示抽签动画
       startDrawAnimation();
       
@@ -407,10 +675,26 @@
         },
         body: JSON.stringify({
           activityName: activityName,
-          count: count
+          count: count,
+          signedStudents: signedStudents,
+          excludedStudents: excludedStudents,
+          excludeReason: excludeReason
         })
       })
-      .then(response => response.json())
+      .then(response => {
+        // 检查响应状态
+        if (!response.ok) {
+          // 如果是网络错误或连接问题，特殊处理
+          if (response.status === 0 || response.status === 504) {
+            throw new Error('网络连接错误，请检查服务器连接');
+          }
+          // 正常读取错误信息
+          return response.json().then(errorData => {
+            throw new Error(errorData.message || `请求失败 (${response.status})`);
+          });
+        }
+        return response.json();
+      })
       .then(data => {
         if (data.success) {
           // 显示抽签结果
@@ -442,7 +726,12 @@
       .catch(error => {
         console.error('抽签错误:', error);
         stopDrawAnimation();
-        alert('抽签出错，请查看控制台');
+        
+        // 显示更友好的错误信息
+        const errorMessage = error.message || '抽签请求失败，请稍后再试';
+        
+        // 提示用户
+        alert('抽签出错: ' + errorMessage);
         
         // 恢复按钮状态
         drawButton.disabled = false;
@@ -452,24 +741,112 @@
     
     // 删除历史记录
     const deleteButtons = document.querySelectorAll('.delete-record');
-    deleteButtons.forEach(button => {
-      button.addEventListener('click', function() {
-        const recordId = this.getAttribute('data-id');
-        if (!confirm('确定要删除此抽签记录吗？')) {
-          return;
+    const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const deleteConfirmText = document.getElementById('deleteConfirmText');
+    const deleteConfirmMessage = document.getElementById('deleteConfirmMessage');
+    const restoreDrawnStudents = document.getElementById('restoreDrawnStudents');
+    const restoreCheckContainer = document.getElementById('restoreCheckContainer');
+    
+    let currentRecordToDelete = null;
+    let currentDeleteElement = null;
+    
+    // 监听输入框的变化，只有输入"确认删除"才能启用删除按钮
+    if (deleteConfirmText) {
+      deleteConfirmText.addEventListener('input', function() {
+        confirmDeleteBtn.disabled = this.value !== '确认删除';
+        if (this.value !== '确认删除') {
+          this.classList.add('is-invalid');
+        } else {
+          this.classList.remove('is-invalid');
         }
+      });
+    }
+    
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
         
-        fetch(`/draw/api/delete-record/${recordId}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
+        const recordId = this.getAttribute('data-id');
+        const drawnNames = this.getAttribute('data-names');
+        const names = drawnNames.split(',');
+        
+        // 设置当前要删除的记录ID和按钮元素
+        currentRecordToDelete = recordId;
+        currentDeleteElement = this;
+        
+        // 更新确认信息
+        deleteConfirmMessage.innerHTML = `
+          <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            您即将删除以下抽签记录，此操作不可撤销！
+          </div>
+          <strong>抽中学生：</strong> ${names.join('、')}
+        `;
+        
+        // 显示确认模态框
+        deleteConfirmModal.show();
+        
+        // 重置输入框和按钮状态
+        deleteConfirmText.value = '';
+        deleteConfirmText.classList.remove('is-invalid');
+        confirmDeleteBtn.disabled = true;
+        
+        // 根据抽签记录的时间决定是否显示恢复选项
+        const row = this.closest('tr');
+        const timeCell = row.querySelector('td:nth-child(4)');
+        const recordTime = new Date(timeCell.textContent);
+        const now = new Date();
+        
+        // 计算时间差，如果是7天内的记录，允许恢复
+        const daysDiff = Math.floor((now - recordTime) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff <= 7) {
+          restoreCheckContainer.style.display = 'block';
+          restoreDrawnStudents.checked = true;
+        } else {
+          restoreCheckContainer.style.display = 'none';
+          restoreDrawnStudents.checked = false;
+        }
+      });
+    });
+    
+    // 确认删除按钮事件
+    if (confirmDeleteBtn) {
+      confirmDeleteBtn.addEventListener('click', function() {
+        if (!currentRecordToDelete || deleteConfirmText.value !== '确认删除') return;
+        
+        // 显示加载状态
+        confirmDeleteBtn.disabled = true;
+        confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+        
+        // 关闭模态框
+        deleteConfirmModal.hide();
+        
+        // 判断是否需要恢复抽签池
+        const shouldRestore = restoreDrawnStudents.checked;
+        
+        // 添加延迟，确保模态框已关闭
+        setTimeout(() => {
+          // 发送删除请求
+          fetch(`/draw/api/delete-record/${currentRecordToDelete}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              restore: shouldRestore
+            })
+          })
+          .then(() => {
+            console.log('删除记录请求已发送');
+            
             // 移除该行
-            this.closest('tr').remove();
+            if (currentDeleteElement) {
+              const row = currentDeleteElement.closest('tr');
+              if (row) row.remove();
+            }
+            
             // 如果没有更多记录，显示空状态
             if (document.querySelectorAll('tbody tr').length === 0) {
               document.querySelector('.table-responsive').innerHTML = `
@@ -477,17 +854,84 @@
                   <i class="bi bi-info-circle"></i> 暂无抽签历史记录
                 </div>
               `;
+              
+              // 隐藏删除全部按钮
+              const deleteAllBtn = document.getElementById('deleteAllRecords');
+              if (deleteAllBtn) {
+                deleteAllBtn.style.display = 'none';
+              }
             }
-          } else {
-            alert('删除失败: ' + data.message);
-          }
-        })
-        .catch(error => {
-          console.error('删除记录错误:', error);
-          alert('删除记录出错，请查看控制台');
-        });
+          })
+          .catch(error => {
+            console.error('删除记录错误:', error);
+          });
+        }, 500);
       });
-    });
+    }
+    
+    // 删除所有历史记录
+    const deleteAllRecordsBtn = document.getElementById('deleteAllRecords');
+    if (deleteAllRecordsBtn) {
+      deleteAllRecordsBtn.addEventListener('click', function() {
+        // 设置当前删除为全部记录
+        currentRecordToDelete = 'all';
+        
+        // 更新确认信息
+        deleteConfirmMessage.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>危险操作！</strong> 您即将删除所有抽签历史记录，此操作不可撤销！
+          </div>
+        `;
+        
+        // 隐藏恢复选项
+        restoreCheckContainer.style.display = 'none';
+        
+        // 显示确认模态框
+        deleteConfirmModal.show();
+        
+        // 重置输入框和按钮状态
+        deleteConfirmText.value = '';
+        deleteConfirmText.classList.remove('is-invalid');
+        confirmDeleteBtn.disabled = true;
+        
+        // 修改确认按钮事件临时处理
+        confirmDeleteBtn.onclick = function() {
+          if (deleteConfirmText.value !== '确认删除') return;
+          
+          // 显示加载状态
+          confirmDeleteBtn.disabled = true;
+          confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+          
+          // 关闭模态框
+          deleteConfirmModal.hide();
+          
+          // 禁用按钮防止二次点击
+          deleteAllRecordsBtn.disabled = true;
+          
+          // 添加延迟，确保模态框已关闭
+          setTimeout(() => {
+            // 发送删除请求
+            fetch('/draw/api/delete-all-records', {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            })
+            .then(() => {
+              console.log('清空历史记录请求已发送');
+            })
+            .catch(error => {
+              console.error('删除所有记录错误:', error);
+            })
+            .finally(() => {
+              // 无论请求成功与否，都刷新页面
+              window.location.reload();
+            });
+          }, 500);
+        };
+      });
+    }
     
     // 开始抽签动画
     function startDrawAnimation() {
@@ -538,7 +982,21 @@
       // 添加结果项
       drawnStudents.forEach((student, index) => {
         const item = document.createElement('div');
-        item.className = isTestMode ? 'result-item test-mode' : 'result-item';
+        
+        // 设置基本类名
+        let className = 'result-item';
+        
+        // 根据学生状态添加额外类
+        if (student.isSigned) {
+          className += ' signed';
+        } else if (student.isExcluded) {
+          className += ' excluded';
+          item.setAttribute('data-reason', student.excludeReason || '未参与');
+        } else if (isTestMode) {
+          className += ' test-mode';
+        }
+        
+        item.className = className;
         item.textContent = student.name;
         item.style.animationDelay = `${index * 0.1}s`;
         resultItems.appendChild(item);
@@ -611,37 +1069,202 @@
     });
 
     // 查看全部名字按钮
-    const viewAllButtons = document.querySelectorAll('.view-all-names');
-    const namesModalElement = document.getElementById('namesModal');
-    const namesModal = new bootstrap.Modal(namesModalElement);
+    const viewAllNamesButtons = document.querySelectorAll('.view-all-names');
+    const namesModal = new bootstrap.Modal(document.getElementById('namesModal'));
     
-    viewAllButtons.forEach(button => {
-      button.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
+    viewAllNamesButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const names = this.dataset.names.split(',');
+        const activity = this.dataset.activity;
         
-        const names = this.getAttribute('data-names').split(',');
-        const activityName = this.getAttribute('data-activity');
+        document.getElementById('modalActivityName').textContent = `${activity} (${names.length}人)`;
         
-        // 更新模态框标题
-        document.getElementById('modalActivityName').textContent = `${activityName} (${names.length}人)`;
-        
-        // 清空并填充名单
         const namesList = document.getElementById('modalNamesList');
         namesList.innerHTML = '';
         
-        names.forEach(name => {
-          const nameElement = document.createElement('div');
-          nameElement.className = 'result-item';
-          nameElement.textContent = name.trim();
-          namesList.appendChild(nameElement);
+        names.forEach((name, index) => {
+          const item = document.createElement('div');
+          item.className = 'result-item';
+          item.textContent = name;
+          item.style.animationDelay = `${index * 0.05}s`;
+          namesList.appendChild(item);
         });
         
-        // 显示模态框
         namesModal.show();
       });
     });
 
+    // 查看抽签历史详情
+    const viewDetailButtons = document.querySelectorAll('.view-draw-detail');
+    const drawDetailModal = new bootstrap.Modal(document.getElementById('drawDetailModal'));
+    
+    viewDetailButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const recordId = this.dataset.id;
+        const names = this.dataset.names.split(',');
+        const activity = this.dataset.activity;
+        const count = this.dataset.count;
+        const time = this.dataset.time;
+        const signedNamesStr = this.dataset.signed || '';
+        const signedNames = signedNamesStr ? signedNamesStr.split(',') : [];
+        const excludedNamesStr = this.dataset.excluded || '';
+        const excludedNames = excludedNamesStr ? excludedNamesStr.split(',') : [];
+        const excludeReason = this.dataset.excludeReason || '';
+        
+        // 设置基本信息
+        document.getElementById('detailActivityName').textContent = activity;
+        document.getElementById('detailDrawCount').textContent = count;
+        document.getElementById('detailDrawTime').textContent = time;
+        
+        // 统计已报名和随机抽取学生
+        const signedCount = signedNames.length;
+        const randomCount = names.length - signedCount;
+        
+        // 设置统计数据
+        document.getElementById('detailTotalStudents').textContent = names.length;
+        document.getElementById('detailSignedCount').textContent = signedCount;
+        document.getElementById('detailRandomCount').textContent = randomCount;
+        
+        // 将不参与数据设置到不参与按钮
+        const excludedButton = document.getElementById('viewExcludedStudents');
+        excludedButton.dataset.excludedNames = excludedNamesStr;
+        excludedButton.dataset.excludeReason = excludeReason;
+        
+        // 生成学生列表
+        const studentsList = document.getElementById('detailStudentsList');
+        studentsList.innerHTML = '';
+        
+        names.forEach((name, index) => {
+          const item = document.createElement('div');
+          
+          // 判断是否为已报名学生
+          const isSigned = signedNames.includes(name);
+          
+          item.className = `student-item ${isSigned ? 'signed' : 'random'} all`;
+          item.dataset.type = isSigned ? 'signed' : 'random';
+          item.textContent = name;
+          item.style.animationDelay = `${index * 0.05}s`;
+          studentsList.appendChild(item);
+        });
+        
+        // 显示模态框
+        drawDetailModal.show();
+      });
+    });
+    
+    // 详情页面中的过滤功能
+    document.getElementById('viewAllStudents').addEventListener('click', function() {
+      filterStudents('all');
+      setActiveFilterButton(this);
+    });
+    
+    document.getElementById('viewSignedStudents').addEventListener('click', function() {
+      filterStudents('signed');
+      setActiveFilterButton(this);
+    });
+    
+    document.getElementById('viewRandomStudents').addEventListener('click', function() {
+      filterStudents('random');
+      setActiveFilterButton(this);
+      // 隐藏不参与原因
+      document.getElementById('excludeReasonContainer').classList.add('d-none');
+    });
+    
+    document.getElementById('viewExcludedStudents').addEventListener('click', function() {
+      filterStudents('excluded');
+      setActiveFilterButton(this);
+      // 显示不参与原因
+      const excludeReasonContainer = document.getElementById('excludeReasonContainer');
+      const excludeReason = this.dataset.excludeReason || '未提供原因';
+      document.getElementById('detailExcludeReason').textContent = excludeReason;
+      excludeReasonContainer.classList.remove('d-none');
+    });
+    
+    function filterStudents(type) {
+      const students = document.querySelectorAll('.student-item');
+      
+      // 如果是排除的学生，需要单独处理
+      if (type === 'excluded') {
+        // 隐藏所有学生
+        students.forEach(student => {
+          student.classList.add('hidden');
+        });
+        
+        // 获取不参与抽签的学生列表
+        const excludedNames = document.getElementById('viewExcludedStudents').dataset.excludedNames || '';
+        if (excludedNames) {
+          const excludedList = excludedNames.split(',');
+          const studentsList = document.getElementById('detailStudentsList');
+          
+          // 清空现有内容
+          studentsList.innerHTML = '';
+          
+          // 添加不参与学生
+          excludedList.forEach((name, index) => {
+            if (name.trim()) {
+              const item = document.createElement('div');
+              item.className = 'student-item excluded';
+              item.dataset.type = 'excluded';
+              item.textContent = name.trim();
+              item.style.animationDelay = `${index * 0.05}s`;
+              studentsList.appendChild(item);
+            }
+          });
+        }
+        return;
+      }
+      
+      // 隐藏不参与原因
+      document.getElementById('excludeReasonContainer').classList.add('d-none');
+      
+      // 常规筛选
+      students.forEach(student => {
+        if (type === 'all') {
+          student.classList.remove('hidden');
+        } else {
+          if (student.dataset.type === type) {
+            student.classList.remove('hidden');
+          } else {
+            student.classList.add('hidden');
+          }
+        }
+      });
+    }
+    
+    function setActiveFilterButton(button) {
+      document.querySelectorAll('#drawDetailModal .btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.classList.contains('btn-outline-primary')) {
+          btn.classList.add('btn-outline-primary');
+          btn.classList.remove('btn-primary');
+        } else if (btn.classList.contains('btn-outline-info')) {
+          btn.classList.add('btn-outline-info');
+          btn.classList.remove('btn-info');
+        } else if (btn.classList.contains('btn-outline-warning')) {
+          btn.classList.add('btn-outline-warning');
+          btn.classList.remove('btn-warning');
+        } else if (btn.classList.contains('btn-outline-danger')) {
+          btn.classList.add('btn-outline-danger');
+          btn.classList.remove('btn-danger');
+        }
+      });
+      
+      button.classList.add('active');
+      if (button.classList.contains('btn-outline-primary')) {
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-primary');
+      } else if (button.classList.contains('btn-outline-info')) {
+        button.classList.remove('btn-outline-info');
+        button.classList.add('btn-info');
+      } else if (button.classList.contains('btn-outline-warning')) {
+        button.classList.remove('btn-outline-warning');
+        button.classList.add('btn-warning');
+      } else if (button.classList.contains('btn-outline-danger')) {
+        button.classList.remove('btn-outline-danger');
+        button.classList.add('btn-danger');
+      }
+    }
+    
     // 表格分页功能
     function setupTablePagination() {
       const tbody = document.querySelector('.history-card table tbody');

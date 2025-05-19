@@ -1,0 +1,229 @@
+<%- include('partials/header') %>
+
+<div class="container main-container">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3"><i class="bi bi-clock-history"></i> 活动删除历史</h1>
+        <div>
+          <a href="/activity/all" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left"></i> 返回活动列表
+          </a>
+          <button class="btn btn-danger" id="clearAllHistory">
+            <i class="bi bi-trash"></i> 清空所有历史记录
+          </button>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0"><i class="bi bi-list"></i> 已删除的活动记录</h5>
+        </div>
+        <div class="card-body">
+          <% if (history && history.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>ID</th>
+                    <th>活动名称</th>
+                    <th>活动日期</th>
+                    <th>默认分值</th>
+                    <th>删除人</th>
+                    <th>删除时间</th>
+                    <th>备注</th>
+                    <th width="100">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% history.forEach(item => { %>
+                  <tr>
+                    <td><%= item.activity_id %></td>
+                    <td><%= item.activity_name %></td>
+                    <td><%= item.activity_date ? new Date(item.activity_date).toLocaleDateString() : '-' %></td>
+                    <td><%= item.defaultScore || 0 %></td>
+                    <td><%= item.deleted_by || '未知' %></td>
+                    <td><%= new Date(item.deleted_at).toLocaleString() %></td>
+                    <td><%= item.remark || '-' %></td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteHistory('<%= item.id %>', '<%= item.activity_name %>')">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle"></i> 暂无删除历史记录
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 确认删除单条历史记录的Modal对话框 -->
+<div class="modal fade" id="deleteHistoryModal" tabindex="-1" aria-labelledby="deleteHistoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteHistoryModalLabel">确认删除历史记录</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>您确定要删除活动 "<span id="historyNameToDelete"></span>" 的历史记录吗？</p>
+        <p class="text-danger">
+          <i class="bi bi-exclamation-triangle-fill"></i> 此操作不可撤销！
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteHistoryBtn">
+          <i class="bi bi-trash"></i> 确认删除
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 确认清空所有历史记录的Modal对话框 -->
+<div class="modal fade" id="clearAllHistoryModal" tabindex="-1" aria-labelledby="clearAllHistoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="clearAllHistoryModalLabel">确认清空所有历史记录</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>您确定要清空所有删除历史记录吗？</p>
+        <p class="text-danger">
+          <i class="bi bi-exclamation-triangle-fill"></i> 警告：此操作将永久删除所有历史记录，不可撤销！
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirmClearAllBtn">
+          <i class="bi bi-trash"></i> 确认清空
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 添加JavaScript脚本处理删除 -->
+<script>
+  // 全局变量
+  let historyIdToDelete = '';
+  
+  // 显示确认删除单条历史记录对话框
+  function confirmDeleteHistory(id, name) {
+    historyIdToDelete = id;
+    document.getElementById('historyNameToDelete').textContent = name;
+    
+    // 显示Modal对话框
+    const modal = new bootstrap.Modal(document.getElementById('deleteHistoryModal'));
+    modal.show();
+  }
+  
+  // 页面加载完成后绑定事件
+  document.addEventListener('DOMContentLoaded', function() {
+    // 防止重复点击的标志
+    let isDeleting = false;
+    let isClearing = false;
+    
+    // 绑定删除单条历史记录按钮事件
+    document.getElementById('confirmDeleteHistoryBtn').addEventListener('click', function() {
+      if (!historyIdToDelete || isDeleting) return;
+      
+      // 设置删除中状态
+      isDeleting = true;
+      this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 删除中...';
+      this.disabled = true;
+      
+      // 发送删除请求
+      fetch(`/activity/delete-history/${historyIdToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // 刷新页面显示更新后的列表
+          window.location.reload();
+        } else {
+          // 显示错误消息
+          alert('删除失败: ' + data.message);
+          
+          // 恢复按钮状态
+          this.innerHTML = '<i class="bi bi-trash"></i> 确认删除';
+          this.disabled = false;
+          isDeleting = false;
+        }
+      })
+      .catch(error => {
+        console.error('删除历史记录出错:', error);
+        alert('删除出错: ' + error.message);
+        
+        // 恢复按钮状态
+        this.innerHTML = '<i class="bi bi-trash"></i> 确认删除';
+        this.disabled = false;
+        isDeleting = false;
+      });
+    });
+    
+    // 绑定清空所有历史记录按钮事件
+    document.getElementById('clearAllHistory').addEventListener('click', function() {
+      // 显示确认对话框
+      const modal = new bootstrap.Modal(document.getElementById('clearAllHistoryModal'));
+      modal.show();
+    });
+    
+    // 绑定确认清空所有历史记录按钮事件
+    document.getElementById('confirmClearAllBtn').addEventListener('click', function() {
+      if (isClearing) return;
+      
+      // 设置清空中状态
+      isClearing = true;
+      this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 清空中...';
+      this.disabled = true;
+      
+      // 发送清空请求
+      fetch('/activity/delete-history/clear-all', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin'
+      })
+      .then(response => {
+        if (response.ok) {
+          // 刷新页面显示更新后的列表
+          alert('清空成功: 已删除所有历史记录');
+          window.location.reload();
+          return { success: true };
+        }
+        return response.json().then(data => {
+          throw new Error(data.message || '清空历史记录失败');
+        });
+      })
+      .catch(error => {
+        console.error('清空历史记录出错:', error);
+        alert('清空出错: ' + error.message);
+        
+        // 恢复按钮状态
+        this.innerHTML = '<i class="bi bi-trash"></i> 确认清空';
+        this.disabled = false;
+        isClearing = false;
+      });
+    });
+  });
+</script>
+
+<%- include('partials/footer') %> 

@@ -30,6 +30,9 @@ router.get('/forms/export/:id', requireAdmin, formsController.exportResults);
 router.post('/api/forms/:id/duplicate', requireAdmin, formsController.duplicateForm);
 router.post('/api/responses/:id/delete', requireAdmin, formsController.deleteResponse);
 
+// 新增问题统计数据API
+router.get('/forms/api/question-stats/:questionId', requireAdmin, formsController.getQuestionStats);
+
 // 用户表单回答相关路由
 router.get('/forms/response/:id', formsController.viewResponse);
 router.get('/forms/response/:id/edit', formsController.editResponse);
@@ -58,12 +61,6 @@ router.get('/overview', deyufenController.overview);
 // 德育分排名页面
 router.get('/ranking', deyufenController.ranking);
 
-// 活动权限验证页面
-router.get('/activity/auth', deyufenController.showActivityAuth);
-
-// 活动权限验证处理
-router.post('/activity/auth', deyufenController.verifyActivityAuth);
-
 // 添加活动页面 - 需要管理员权限
 router.get('/activity/add', requireAdmin, deyufenController.showAddActivity);
 
@@ -72,6 +69,22 @@ router.post('/activity/add', requireAdmin, deyufenController.addActivity);
 
 // 所有活动列表页面
 router.get('/activities', deyufenController.allActivities);
+router.get('/activity/all', deyufenController.allActivities);
+
+// 删除活动
+router.delete('/activity/:id', requireAdmin, deyufenController.deleteActivity);
+
+// 活动删除历史记录
+router.get('/activity/delete-history', requireAdmin, deyufenController.getDeleteHistory);
+
+// 删除指定的历史记录
+router.delete('/activity/delete-history/:id', requireAdmin, deyufenController.deleteHistoryRecord);
+
+// 清空所有删除历史记录
+router.delete('/activity/delete-history/all', requireAdmin, deyufenController.clearDeleteHistory);
+
+// 新增POST方法清空所有删除历史记录
+router.post('/activity/delete-history/clear-all', requireAdmin, deyufenController.clearDeleteHistory);
 
 // 分配活动分值页面
 router.get('/activity/assign/:id', requireAdmin, deyufenController.showAssignActivityScores);

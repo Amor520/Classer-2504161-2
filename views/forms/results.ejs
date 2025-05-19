@@ -1,0 +1,343 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-5 pt-4">
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h3 class="mb-0"><i class="bi bi-bar-chart"></i> <%= form.title %> - 结果</h3>
+      <div>
+        <a href="/forms/export/<%= form.id %>" class="btn btn-sm btn-light me-2">
+          <i class="bi bi-file-earmark-excel"></i> 导出Excel
+        </a>
+        <button type="button" class="btn btn-sm btn-light" onclick="duplicateForm('<%= form.id %>', '<%= form.title %>')">
+          <i class="bi bi-copy"></i> 复制表单
+        </button>
+      </div>
+    </div>
+    <div class="card-body">
+      <% if (responses && responses.length > 0) { %>
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle"></i> 共有 <strong><%= responses.length %></strong> 份回答
+        </div>
+        
+        <!-- 问题统计表格 -->
+        <% if (form.questions && form.questions.length > 0) { %>
+          <div class="card mb-4">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">问题统计</h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>问题</th>
+                      <th>回答数</th>
+                      <th>类型</th>
+                      <th>可视化</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% form.questions.forEach(question => { %>
+                      <tr>
+                        <td><%= question.text %></td>
+                        <td>
+                          <% 
+                            let answeredCount = 0;
+                            responses.forEach(response => {
+                              if (response.answers && response.answers[question.id] !== undefined && 
+                                  response.answers[question.id] !== null && 
+                                  response.answers[question.id] !== '') {
+                                answeredCount++;
+                              }
+                            });
+                          %>
+                          <%= answeredCount %> / <%= responses.length %>
+                        </td>
+                        <td><%= question.type %></td>
+                        <td>
+                          <% if (['radio', 'checkbox', 'dropdown'].includes(question.type) && question.options) { %>
+                            <button class="btn btn-sm btn-outline-primary show-chart" 
+                                  data-question-id="<%= question.id %>"
+                                  data-question-text="<%= question.text %>"
+                                  data-question-type="<%= question.type %>">
+                              <i class="bi bi-pie-chart"></i> 查看统计
+                            </button>
+                          <% } else { %>
+                            <span class="text-muted">无可视化</span>
+                          <% } %>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        <% } %>
+        
+        <!-- 回答详情列表 -->
+        <div class="card">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">回答详情</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover table-striped">
+                <thead>
+                  <tr>
+                    <th width="5%">#</th>
+                    <th width="15%">提交时间</th>
+                    <th width="60%">用户信息</th>
+                    <th width="20%">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% responses.forEach((response, index) => { %>
+                    <tr>
+                      <td><%= index + 1 %></td>
+                      <td><%= new Date(response.created_at).toLocaleString('zh-CN') %></td>
+                      <td>
+                        <% if (response.nickname || response.qq_number || response.student_id || response.class_number) { %>
+                          <div class="user-info">
+                            <% if (response.nickname) { %>
+                              <span class="badge bg-primary me-2"><i class="bi bi-person"></i> <%= response.nickname %></span>
+                            <% } %>
+                            <% if (response.qq_number) { %>
+                              <span class="badge bg-info me-2"><i class="bi bi-chat-dots"></i> <%= response.qq_number %></span>
+                            <% } %>
+                            <% if (response.student_id) { %>
+                              <span class="badge bg-success me-2"><i class="bi bi-person-badge"></i> <%= response.student_id %></span>
+                            <% } %>
+                            <% if (response.class_number) { %>
+                              <span class="badge bg-warning me-2"><i class="bi bi-people"></i> <%= response.class_number %></span>
+                            <% } %>
+                          </div>
+                        <% } else { %>
+                          <em class="text-muted">无用户信息</em>
+                        <% } %>
+                      </td>
+                      <td>
+                        <a href="/forms/response/<%= response.id %>" class="btn btn-sm btn-outline-primary">
+                          <i class="bi bi-eye"></i> 查看详情
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger delete-response" data-id="<%= response.id %>">
+                          <i class="bi bi-trash"></i> 删除
+                        </button>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle"></i> 暂无回答数据
+        </div>
+      <% } %>
+      
+      <div class="mt-4">
+        <a href="/forms/view/<%= form.id %>" class="btn btn-primary">
+          <i class="bi bi-eye"></i> 查看表单
+        </a>
+        <a href="/forms" class="btn btn-secondary">
+          <i class="bi bi-arrow-left"></i> 返回
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 统计图表模态框 -->
+<div class="modal fade" id="chartModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="chart-container" style="position: relative; height:400px; width:100%">
+          <canvas id="responseChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">确认删除</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>确定要删除这份回答吗？此操作无法撤销。</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirmDelete">确认删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 初始化模态框
+    const chartModal = new bootstrap.Modal(document.getElementById('chartModal'));
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    
+    // 准备图表数据
+    const showChartButtons = document.querySelectorAll('.show-chart');
+    let responseChart = null;
+    
+    // 处理图表显示
+    showChartButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const questionId = this.dataset.questionId;
+        const questionText = this.dataset.questionText;
+        const questionType = this.dataset.questionType;
+        
+        // 设置模态框标题
+        document.querySelector('#chartModal .modal-title').textContent = questionText;
+        
+        // 为避免EJS模板语法错误，改用AJAX请求获取数据
+        fetch(`/forms/api/question-stats/${questionId}?formId=<%= form.id %>`)
+          .then(response => response.json())
+          .then(data => {
+            const question = data.question;
+            const counts = data.counts;
+            
+            if (!question || !question.options) return;
+            
+            // 销毁之前的图表
+            if (responseChart) {
+              responseChart.destroy();
+            }
+            
+            // 准备图表数据
+            const labels = Object.keys(counts);
+            const dataValues = Object.values(counts);
+            const colors = [
+              'rgba(54, 162, 235, 0.8)',
+              'rgba(255, 99, 132, 0.8)',
+              'rgba(75, 192, 192, 0.8)',
+              'rgba(255, 206, 86, 0.8)',
+              'rgba(153, 102, 255, 0.8)',
+              'rgba(255, 159, 64, 0.8)',
+              'rgba(199, 199, 199, 0.8)'
+            ];
+            
+            // 创建图表
+            const ctx = document.getElementById('responseChart').getContext('2d');
+            responseChart = new Chart(ctx, {
+              type: 'pie',
+              data: {
+                labels: labels,
+                datasets: [{
+                  data: dataValues,
+                  backgroundColor: colors.slice(0, labels.length),
+                  borderWidth: 1
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'top',
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        const value = context.parsed;
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = Math.round((value / total) * 100);
+                        return `${context.label}: ${value} (${percentage}%)`;
+                      }
+                    }
+                  }
+                }
+              }
+            });
+            
+            // 显示模态框
+            chartModal.show();
+          })
+          .catch(error => {
+            console.error('Error fetching question stats:', error);
+            alert('无法获取问题统计数据');
+          });
+      });
+    });
+    
+    // 处理删除回答
+    const deleteButtons = document.querySelectorAll('.delete-response');
+    let responseIdToDelete;
+    
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        responseIdToDelete = this.dataset.id;
+        deleteModal.show();
+      });
+    });
+    
+    // 确认删除
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+      if (!responseIdToDelete) return;
+      
+      fetch(`/api/responses/${responseIdToDelete}/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // 刷新页面显示最新结果
+          window.location.reload();
+        } else {
+          alert('删除失败: ' + (data.message || '未知错误'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('操作失败，请稍后再试');
+      });
+      
+      deleteModal.hide();
+    });
+    
+    // 复制表单功能
+    window.duplicateForm = function(formId, title) {
+      const newTitle = prompt('请输入新表单的标题:', `${title} (副本)`);
+      if (!newTitle) return;
+      
+      fetch(`/api/forms/${formId}/duplicate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title: newTitle })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.redirect_url) {
+          window.location.href = data.redirect_url;
+        } else {
+          alert('复制失败: ' + (data.message || '未知错误'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('操作失败，请稍后再试');
+      });
+    };
+  });
+</script>
+
+<%- include('../partials/footer') %> 

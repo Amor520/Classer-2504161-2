@@ -17,9 +17,10 @@
   <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/tech-theme.css">
+  <link rel="stylesheet" href="/css/no-hover-transform.css">
   
   <!-- 异步加载非关键JS资源 -->
-  <script src="https://cdn.bootcdn.net/ajax/libs/chart.js/3.9.1/chart.min.js" async defer></script>
+  <script src="https://cdn.staticfile.org/Chart.js/3.9.1/chart.min.js" async defer></script>
   <script src="https://cdn.bootcdn.net/ajax/libs/particles.js/2.0.0/particles.min.js" async defer></script>
   <script src="/js/sorting.js" defer></script>
   <script src="/js/tech-effects.js" defer></script>
@@ -34,77 +35,89 @@
   
   <!-- 导航栏 -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
-    <div class="container main-container">
+    <div class="container nav-container">
       <a class="navbar-brand" href="/"><i class="bi bi-pc-display"></i> 计算机2308班</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
               aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav me-auto">
-          <!-- 主导航项 -->
+        <ul class="navbar-nav mx-auto">
+          <!-- 班级主页 -->
           <li class="nav-item">
             <a class="nav-link <%= typeof active !== 'undefined' && active === 'class-home' ? 'active' : '' %>" href="/"><i class="bi bi-house"></i> 班级主页</a>
           </li>
+          
+          <!-- 收集表系统 -->
           <li class="nav-item">
-            <a class="nav-link <%= typeof active !== 'undefined' && active === 'forms-home' ? 'active' : '' %>" href="/forms"><i class="bi bi-clipboard-data"></i> 收集表系统</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link <%= typeof active !== 'undefined' && active === 'home' ? 'active' : '' %>" href="/deyufen"><i class="bi bi-trophy"></i> 德育分系统</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link <%= typeof active !== 'undefined' && active === 'draw' ? 'active' : '' %>" href="/draw"><i class="bi bi-shuffle"></i> 抽签系统</a>
+            <a class="nav-link <%= typeof active !== 'undefined' && ['forms-home', 'forms-active', 'forms-submissions', 'forms-recent', 'all-forms', 'create-form', 'view-form', 'form-results', 'forms'].includes(active) ? 'active' : '' %>" href="/forms">
+              <i class="bi bi-clipboard-data"></i> 收集表系统
+            </a>
           </li>
           
-          <!-- 动态导航栏：德育分系统相关 -->
-          <% if (typeof active !== 'undefined' && ['home', 'overview', 'activities', 'ranking', 'student', 'activity'].includes(active)) { %>
-            <li class="nav-item">
-              <a class="nav-link <%= typeof active !== 'undefined' && active === 'overview' ? 'active' : '' %>" href="/overview"><i class="bi bi-card-checklist"></i> 德育分总览</a>
+          <!-- 收集表系统的子页面，仅当在收集表系统相关页面时显示 -->
+          <% if (typeof active !== 'undefined' && ['forms-home', 'forms-active', 'forms-submissions', 'forms-recent', 'all-forms', 'create-form', 'view-form', 'form-results', 'forms'].includes(active)) { %>
+            <li class="nav-item sub-nav-item">
+              <a class="nav-link <%= ['forms-active', 'forms-home'].includes(active) ? 'sub-active' : '' %>" href="/forms/active"><i class="fas fa-clipboard-check"></i> 活跃表单</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link <%= typeof active !== 'undefined' && active === 'ranking' ? 'active' : '' %>" href="/ranking"><i class="bi bi-bar-chart"></i> 德育分排名</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link <%= typeof active !== 'undefined' && active === 'activities' ? 'active' : '' %>" href="/activities"><i class="bi bi-list-ul"></i> 所有活动</a>
+            <li class="nav-item sub-nav-item">
+              <a class="nav-link <%= ['all-forms', 'forms'].includes(active) ? 'sub-active' : '' %>" href="/forms/all"><i class="fas fa-list-ul"></i> 所有表单</a>
             </li>
             <% if (typeof session !== 'undefined' && session.admin) { %>
-              <li class="nav-item">
-                <a class="nav-link <%= typeof active !== 'undefined' && active === 'activity_add' ? 'active' : '' %>" href="/activity/add"><i class="bi bi-plus-circle"></i> 添加活动</a>
+              <li class="nav-item sub-nav-item">
+                <a class="nav-link <%= active === 'create-form' ? 'sub-active' : '' %>" href="/forms/create"><i class="fas fa-plus-circle"></i> 创建表单</a>
+              </li>
+            <% } %>
+            <li class="nav-item sub-nav-item">
+              <a class="nav-link <%= active === 'forms-submissions' ? 'sub-active' : '' %>" href="/forms/submissions"><i class="fas fa-inbox"></i> 提交记录</a>
+            </li>
+          <% } %>
+          
+          <!-- 德育分系统 -->
+          <li class="nav-item">
+            <a class="nav-link <%= typeof active !== 'undefined' && ['home', 'overview', 'activities', 'ranking', 'student', 'activity', 'activity_add'].includes(active) ? 'active' : '' %>" href="/deyufen">
+              <i class="bi bi-trophy"></i> 德育分系统
+            </a>
+          </li>
+          
+          <!-- 德育分系统的子页面，仅当在德育分系统相关页面时显示 -->
+          <% if (typeof active !== 'undefined' && ['home', 'overview', 'activities', 'ranking', 'student', 'activity', 'activity_add'].includes(active)) { %>
+            <li class="nav-item sub-nav-item">
+              <a class="nav-link <%= active === 'overview' ? 'sub-active' : '' %>" href="/overview"><i class="bi bi-card-checklist"></i> 德育分总览</a>
+            </li>
+            <li class="nav-item sub-nav-item">
+              <a class="nav-link <%= active === 'ranking' ? 'sub-active' : '' %>" href="/ranking"><i class="bi bi-bar-chart"></i> 德育分排名</a>
+            </li>
+            <li class="nav-item sub-nav-item">
+              <a class="nav-link <%= active === 'activities' ? 'sub-active' : '' %>" href="/activities"><i class="bi bi-list-ul"></i> 所有活动</a>
+            </li>
+            <% if (typeof session !== 'undefined' && session.admin) { %>
+              <li class="nav-item sub-nav-item">
+                <a class="nav-link <%= active === 'activity_add' ? 'sub-active' : '' %>" href="/activity/add"><i class="bi bi-plus-circle"></i> 添加活动</a>
               </li>
             <% } %>
           <% } %>
           
-          <!-- 动态导航栏：收集表系统相关 -->
-          <% if (typeof active !== 'undefined' && ['forms', 'forms-home', 'forms-active', 'forms-submissions', 'forms-recent', 'all-forms', 'create-form', 'view-form', 'form-results'].includes(active)) { %>
-            <li class="nav-item">
-              <a class="nav-link <%= typeof active !== 'undefined' && active === 'forms-active' ? 'active' : '' %>" href="/forms/active"><i class="fas fa-clipboard-check"></i> 活跃表单</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link <%= typeof active !== 'undefined' && active === 'all-forms' ? 'active' : '' %>" href="/forms/all"><i class="fas fa-list-ul"></i> 所有表单</a>
-            </li>
-            <% if (typeof session !== 'undefined' && session.admin) { %>
-              <li class="nav-item">
-                <a class="nav-link <%= typeof active !== 'undefined' && active === 'create-form' ? 'active' : '' %>" href="/forms/create"><i class="fas fa-plus-circle"></i> 创建表单</a>
-              </li>
-            <% } %>
-            <li class="nav-item">
-              <a class="nav-link <%= typeof active !== 'undefined' && active === 'forms-submissions' ? 'active' : '' %>" href="/forms/submissions"><i class="fas fa-inbox"></i> 提交记录</a>
-            </li>
-          <% } %>
+          <!-- 抽签系统 -->
+          <li class="nav-item">
+            <a class="nav-link <%= typeof active !== 'undefined' && active === 'draw' ? 'active' : '' %>" href="/draw">
+              <i class="bi bi-shuffle"></i> 抽签系统
+            </a>
+          </li>
           
-          <!-- 动态导航栏：抽签系统相关 -->
+          <!-- 抽签系统的子页面，仅当在抽签系统页面时显示 -->
           <% if (typeof active !== 'undefined' && active === 'draw') { %>
-            <li class="nav-item">
-              <a class="nav-link" href="/draw"><i class="bi bi-people"></i> 抽签池</a>
+            <li class="nav-item sub-nav-item">
+              <a class="nav-link sub-active" href="/draw"><i class="bi bi-people"></i> 抽签池</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/draw#history"><i class="bi bi-clock-history"></i> 抽签历史</a>
+            <li class="nav-item sub-nav-item">
+              <a class="nav-link sub-active" href="/draw#history"><i class="bi bi-clock-history"></i> 抽签历史</a>
             </li>
           <% } %>
         </ul>
         
         <!-- 右侧导航项 -->
-        <ul class="navbar-nav">
+        <ul class="navbar-nav navbar-right">
           <!-- 管理员选项 -->
           <% if (typeof session !== 'undefined' && session.admin) { %>
             <li class="nav-item dropdown">
@@ -126,7 +139,7 @@
             </li>
           <% } else { %>
             <li class="nav-item">
-              <a class="nav-link" href="/admin/login"><i class="bi bi-shield-lock"></i> 管理员登录</a>
+              <a class="nav-link admin-login" href="/admin/login"><i class="bi bi-shield-lock"></i> 管理员登录</a>
             </li>
           <% } %>
         </ul>

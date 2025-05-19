@@ -1,0 +1,53 @@
+/**
+ * 全局禁用卡片悬停上浮效果
+ */
+
+/* 禁用所有卡片元素的悬停变换效果 */
+.card,
+.card-container,
+.card-wrapper,
+.card-body,
+.card-header,
+.card-footer,
+.card *,
+.card:hover,
+.card-container:hover,
+.card-wrapper:hover,
+.card-body:hover,
+.card-header:hover,
+.card-footer:hover,
+.card *:hover {
+  transform: none !important;
+  transition: box-shadow 0.3s ease !important;
+}
+
+/* 允许阴影效果但禁用位置变换 */
+.card:hover {
+  box-shadow: 0 10px 20px rgba(0, 123, 255, 0.1) !important;
+}
+
+/* 禁用卡片内部元素的缩放效果 */
+.card:hover .display-4,
+.card:hover .h1,
+.card:hover .h2,
+.card:hover .h3,
+.card:hover .h4,
+.card:hover .h5,
+.card:hover img,
+.card:hover .card-title,
+.card:hover .card-subtitle,
+.card:hover .icon {
+  transform: none !important;
+}
+
+/* 强制覆盖任何可能具有优先级的内联样式 */
+[style*="transform"] {
+  transform: none !important;
+}
+
+/* 确保3D效果也被禁用 */
+* {
+  perspective: none !important;
+  transform-style: flat !important;
+  backface-visibility: visible !important;
+} 

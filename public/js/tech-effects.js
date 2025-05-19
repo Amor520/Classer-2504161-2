@@ -121,7 +121,9 @@ function apply3DHoverEffects() {
       const rotateX = (y - centerY) / 10;
       const rotateY = (centerX - x) / 10;
       
-      item.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+      // 禁用3D变换效果
+      // item.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+      item.style.transform = 'none';
       item.style.zIndex = '10';
     });
     

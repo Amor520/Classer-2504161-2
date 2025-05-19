@@ -11,9 +11,7 @@ const pool = mysql.createPool({
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000, // 10 秒
-  connectTimeout: 60000, // 60 秒
-  acquireTimeout: 60000, // 60 秒
-  timeout: 60000 // 60 秒
+  connectTimeout: 60000 // 60 秒
 });
 
 // 监听连接事件

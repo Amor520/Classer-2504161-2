@@ -68,6 +68,9 @@ class DeyufenModel {
     try {
       console.log('添加活动到数据库:', activityData);
       
+      // 先尝试迁移表结构，确保兼容新的字段名
+      await this.ensureActivityTableStructure();
+      
       // 检查activities表结构
       try {
         const [columns] = await db.query('SHOW COLUMNS FROM activities');
@@ -110,10 +113,14 @@ class DeyufenModel {
       
       // 默认分值 - 可选，但建议添加
       if ('defaultScore' in activityData) {
-        insertFields.push('默认分值');
+        insertFields.push('defaultScore');
         insertValues.push(activityData.defaultScore);
         placeholders.push('?');
       }
+      
+      // 打印SQL语句字段和值，用于调试
+      console.log('字段:', insertFields);
+      console.log('值:', insertValues);
       
       const query = `INSERT INTO activities (${insertFields.join(', ')}) VALUES (${placeholders.join(', ')})`;
       console.log('执行SQL:', query);
@@ -139,20 +146,47 @@ class DeyufenModel {
   // 创建活动表（如果不存在）
   async createActivitiesTable() {
     try {
+      console.log('开始创建activities表...');
+      
+      // 检查表是否已存在
+      const [tables] = await db.query("SHOW TABLES LIKE 'activities'");
+      if (tables.length > 0) {
+        console.log('activities表已存在，无需创建');
+        return true;
+      }
+      
       const query = `
         CREATE TABLE IF NOT EXISTS activities (
           活动ID INT AUTO_INCREMENT PRIMARY KEY,
           活动名称 VARCHAR(100) NOT NULL,
           活动日期 DATE,
           备注 VARCHAR(200),
-          默认分值 FLOAT DEFAULT 0,
+          defaultScore FLOAT DEFAULT 0,
           创建时间 TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `;
       
-      console.log('尝试创建activities表');
+      console.log('执行建表SQL:', query);
       await db.query(query);
-      console.log('activities表创建成功');
+      
+      // 验证表是否创建成功
+      const [createdTables] = await db.query("SHOW TABLES LIKE 'activities'");
+      if (createdTables.length === 0) {
+        console.error('创建表失败，表不存在');
+        throw new Error('创建activities表失败');
+      }
+      
+      // 验证字段是否正确
+      const [columns] = await db.query('SHOW COLUMNS FROM activities');
+      const columnNames = columns.map(col => col.Field);
+      console.log('创建的表字段:', columnNames.join(', '));
+      
+      if (!columnNames.includes('defaultScore')) {
+        console.error('创建表成功但缺少defaultScore字段');
+        throw new Error('表结构不完整，缺少defaultScore字段');
+      }
+      
+      console.log('activities表创建成功，并包含所有必要字段');
       return true;
     } catch (error) {
       console.error('创建activities表失败:', error);
@@ -392,6 +426,173 @@ class DeyufenModel {
       }
     } catch (error) {
       console.error('更新所有学生总分时出错:', error);
+      throw error;
+    }
+  }
+
+  // 确保活动表结构正确
+  async ensureActivityTableStructure() {
+    try {
+      console.log('确保活动表结构正确...');
+      
+      // 检查表是否存在
+      const [tables] = await db.query("SHOW TABLES LIKE 'activities'");
+      if (tables.length === 0) {
+        console.log('活动表不存在，创建新表');
+        return await this.createActivitiesTable();
+      }
+      
+      // 检查defaultScore字段是否存在
+      const [columns] = await db.query('SHOW COLUMNS FROM activities');
+      const columnNames = columns.map(col => col.Field);
+      console.log('现有表字段:', columnNames.join(', '));
+      
+      if (!columnNames.includes('defaultScore')) {
+        console.log('defaultScore字段不存在，添加该字段');
+        try {
+          await db.query('ALTER TABLE activities ADD COLUMN defaultScore FLOAT DEFAULT 0');
+          console.log('已成功添加defaultScore字段');
+          
+          // 如果存在旧字段，则复制数据
+          if (columnNames.includes('默认分值')) {
+            console.log('复制数据从 默认分值 到 defaultScore');
+            await db.query('UPDATE activities SET defaultScore = `默认分值`');
+          }
+          
+          return true;
+        } catch (alterError) {
+          console.error('添加defaultScore字段失败:', alterError);
+          throw alterError;
+        }
+      }
+      
+      console.log('表结构检查完成，defaultScore字段已存在');
+      return true;
+    } catch (error) {
+      console.error('确保表结构时出错:', error);
+      throw error;
+    }
+  }
+
+  // 检查并创建删除历史表
+  async createDeleteHistoryTable() {
+    try {
+      console.log('检查删除历史表是否存在...');
+      
+      const query = `
+        CREATE TABLE IF NOT EXISTS deleted_activities (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          activity_id INT,
+          activity_name VARCHAR(100) NOT NULL,
+          activity_date DATE,
+          defaultScore FLOAT DEFAULT 0,
+          remark VARCHAR(200),
+          deleted_by VARCHAR(50),
+          deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `;
+      
+      await db.query(query);
+      console.log('删除历史表检查/创建完成');
+      return true;
+    } catch (error) {
+      console.error('创建删除历史表出错:', error);
+      throw error;
+    }
+  }
+
+  // 删除活动
+  async deleteActivity(activityId, deletedBy) {
+    try {
+      console.log(`开始删除活动 ID: ${activityId} 由: ${deletedBy}`);
+      
+      // 确保删除历史表存在
+      await this.createDeleteHistoryTable();
+      
+      // 首先获取活动信息，以便保存到删除历史
+      const [activity] = await db.query('SELECT * FROM activities WHERE 活动ID = ?', [activityId]);
+      
+      if (!activity || activity.length === 0) {
+        throw new Error('找不到要删除的活动');
+      }
+      
+      const activityInfo = activity[0];
+      
+      // 开始事务
+      await db.query('START TRANSACTION');
+      
+      try {
+        // 1. 保存到删除历史表
+        const insertHistoryQuery = `
+          INSERT INTO deleted_activities 
+          (activity_id, activity_name, activity_date, defaultScore, remark, deleted_by) 
+          VALUES (?, ?, ?, ?, ?, ?)
+        `;
+        
+        await db.query(insertHistoryQuery, [
+          activityInfo.活动ID,
+          activityInfo.活动名称,
+          activityInfo.活动日期,
+          activityInfo.defaultScore || 0,
+          activityInfo.备注 || '',
+          deletedBy || 'unknown'
+        ]);
+        
+        // 2. 删除学生活动关联
+        await db.query('DELETE FROM student_activities WHERE 活动ID = ?', [activityId]);
+        
+        // 3. 删除活动
+        await db.query('DELETE FROM activities WHERE 活动ID = ?', [activityId]);
+        
+        // 提交事务
+        await db.query('COMMIT');
+        
+        console.log(`活动 ID: ${activityId} 删除成功`);
+        return true;
+      } catch (error) {
+        // 回滚事务
+        await db.query('ROLLBACK');
+        console.error('删除活动过程中出错，已回滚:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('删除活动失败:', error);
+      throw error;
+    }
+  }
+
+  // 获取删除历史记录
+  async getDeleteHistory() {
+    try {
+      // 确保表存在
+      await this.createDeleteHistoryTable();
+      
+      const [rows] = await db.query('SELECT * FROM deleted_activities ORDER BY deleted_at DESC');
+      return rows;
+    } catch (error) {
+      console.error('获取删除历史记录失败:', error);
+      throw error;
+    }
+  }
+
+  // 删除单条删除历史记录
+  async deleteHistoryRecord(id) {
+    try {
+      const [result] = await db.query('DELETE FROM deleted_activities WHERE id = ?', [id]);
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('删除历史记录失败:', error);
+      throw error;
+    }
+  }
+
+  // 清空所有删除历史记录
+  async clearDeleteHistory() {
+    try {
+      const [result] = await db.query('DELETE FROM deleted_activities');
+      return result.affectedRows;
+    } catch (error) {
+      console.error('清空删除历史记录失败:', error);
       throw error;
     }
   }

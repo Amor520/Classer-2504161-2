@@ -49,11 +49,7 @@
                 <td class="score"><%= student.总分 %></td>
                 <td>
                   <div class="text-center">
-                    <span class="score-badge 
-                      <%= student.总分 >= 90 ? 'score-excellent' : 
-                         (student.总分 >= 80 ? 'score-good' : 
-                          (student.总分 >= 70 ? 'score-average' : 
-                           (student.总分 >= 60 ? 'score-pass' : 'score-fail'))) %>">
+                    <span class="score-badge">
                       <%= student.总分 %>分
                     </span>
                   </div>
@@ -100,31 +96,58 @@
     min-width: 80px;
     text-align: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-  }
-  
-  .score-excellent {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
-  }
-  
-  .score-good {
-    background: linear-gradient(135deg, #17a2b8, #0dcaf0);
-    color: white;
-  }
-  
-  .score-average {
     background: linear-gradient(135deg, #0d6efd, #6610f2);
     color: white;
   }
   
-  .score-pass {
-    background: linear-gradient(135deg, #fd7e14, #ffc107);
-    color: white;
+  /* 强力禁用表格的所有变换效果 */
+  #rankingTable,
+  #rankingTable *,
+  #rankingTable tr,
+  #rankingTable td,
+  #rankingTable th,
+  #rankingTable tbody,
+  #rankingTable thead {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+    perspective: none !important;
+    backface-visibility: visible !important;
+    transform-style: flat !important;
+    transition-property: background-color, border-color !important;
+    will-change: auto !important;
   }
   
-  .score-fail {
-    background: linear-gradient(135deg, #dc3545, #f86b6b);
-    color: white;
+  /* 对排名徽章单独处理，禁用所有变换和过渡特效 */
+  #rankingTable .badge,
+  #rankingTable .badge:hover,
+  #rankingTable tr:hover .badge {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  /* 确保表格悬浮只改变背景色而不做任何其它变化 */
+  #rankingTable tr:hover {
+    background-color: rgba(0, 123, 255, 0.05) !important;
+    transform: none !important;
+  }
+  
+  /* 强制表格整体稳定 */
+  .table-responsive {
+    overflow-x: auto;
+    transform: none !important;
+    backface-visibility: visible !important;
+    perspective: none !important;
+  }
+  
+  /* 禁用卡片悬停上浮效果 */
+  .card:hover,
+  .card-body:hover,
+  .card *:hover {
+    transform: none !important;
+    transition: box-shadow 0.3s ease !important;
   }
 </style>
 

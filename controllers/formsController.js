@@ -406,6 +406,80 @@ const exportResults = async (req, res) => {
   }
 };
 
+// 获取问题统计数据
+const getQuestionStats = async (req, res) => {
+  try {
+    if (!req.session.admin) {
+      return res.status(403).json({ success: false, message: '需要管理员权限' });
+    }
+    
+    const questionId = req.params.questionId;
+    const formId = req.query.formId;
+    
+    // 获取表单信息
+    const form = await formsModel.getFormById(formId);
+    
+    if (!form) {
+      return res.status(404).json({ success: false, message: '表单不存在' });
+    }
+    
+    // 检查权限：只有创建者或超级管理员可以查看结果
+    if (form.admin_id !== req.session.admin.id && req.session.admin.role !== 2) {
+      return res.status(403).json({ success: false, message: '没有权限查看此表单的结果' });
+    }
+    
+    // 获取问题信息
+    const question = form.questions.find(q => q.id === questionId);
+    
+    if (!question) {
+      return res.status(404).json({ success: false, message: '问题不存在' });
+    }
+    
+    // 获取表单所有回答
+    const responses = await formsModel.getFormResponses(formId);
+    
+    // 统计不同选项的回答数量
+    const counts = {};
+    if (question.options) {
+      question.options.forEach(option => {
+        counts[option.text] = 0;
+      });
+      
+      // 处理不同类型的问题
+      responses.forEach(response => {
+        if (!response.answers || !response.answers[questionId]) return;
+        
+        const answer = response.answers[questionId];
+        
+        if (question.type === 'checkbox' && Array.isArray(answer)) {
+          // 复选框可能有多个选中项
+          answer.forEach(a => {
+            const option = question.options.find(o => o.value === a);
+            if (option && counts[option.text] !== undefined) {
+              counts[option.text]++;
+            }
+          });
+        } else if (question.type === 'radio' || question.type === 'dropdown') {
+          // 单选框或下拉框只有一个选中项
+          const option = question.options.find(o => o.value === answer);
+          if (option && counts[option.text] !== undefined) {
+            counts[option.text]++;
+          }
+        }
+      });
+    }
+    
+    // 返回问题和统计数据
+    res.json({
+      question,
+      counts
+    });
+  } catch (error) {
+    console.error('Error getting question stats:', error);
+    res.status(500).json({ success: false, message: '服务器错误，请稍后再试' });
+  }
+};
+
 // 删除表单回答
 const deleteResponse = async (req, res) => {
   try {
@@ -742,17 +816,94 @@ const adminLogout = (req, res) => {
 const adminDashboard = async (req, res) => {
   try {
     // 只显示当前管理员创建的表单，超级管理员可以看到所有表单
-    let forms;
-    if (req.session.admin.role === 2) { // 超级管理员
-      forms = await formsModel.getAllForms();
-    } else {
-      forms = await formsModel.getFormsByAdminId(req.session.admin.id);
+    let forms = [];
+    try {
+      if (req.session.admin.role === 2) { // 超级管理员
+        forms = await formsModel.getAllForms() || [];
+      } else {
+        forms = await formsModel.getFormsByAdminId(req.session.admin.id) || [];
+      }
+    } catch (formError) {
+      console.error('Error fetching forms:', formError);
+    }
+    
+    // 获取活动总数和管理员人数（仅超级管理员可见）
+    let activities = [];
+    let adminCount = 0;
+    let drawHistoryCount = 0;
+    
+    if (req.session.admin.role === 2) {
+      try {
+        // 获取所有活动
+        const deyufenModel = require('../models/deyufen');
+        activities = await deyufenModel.getActivities() || [];
+        console.log('获取到活动数据:', activities.length);
+      } catch (activityError) {
+        console.error('Error fetching activities:', activityError);
+      }
+      
+      try {
+        // 获取管理员人数
+        const [admins] = await pool.query('SELECT COUNT(*) as count FROM admin');
+        adminCount = admins && admins[0] ? admins[0].count : 0;
+        console.log('获取到管理员数量:', adminCount);
+      } catch (adminError) {
+        console.error('Error fetching admin count:', adminError);
+      }
+      
+      try {
+        // 获取抽签记录数量
+        const drawModel = require('../models/drawModel');
+        // 使用Promise包装回调函数
+        const getDrawHistoryCount = () => {
+          return new Promise((resolve, reject) => {
+            drawModel.getDrawHistoryCount((err, count) => {
+              if (err) reject(err);
+              else resolve(count);
+            });
+          });
+        };
+        
+        try {
+          drawHistoryCount = await getDrawHistoryCount();
+        } catch (err) {
+          console.error('获取抽签记录数量失败，尝试直接从数据库获取', err);
+          
+          // 如果方法不存在，直接使用SQLite查询
+          const sqlite3 = require('sqlite3').verbose();
+          const db = new sqlite3.Database('./database.db');
+          
+          const getCountFromDb = () => {
+            return new Promise((resolve, reject) => {
+              db.get('SELECT COUNT(*) as count FROM draw_history', (err, row) => {
+                if (err) reject(err);
+                else resolve(row ? row.count : 0);
+              });
+            });
+          };
+          
+          try {
+            drawHistoryCount = await getCountFromDb();
+            db.close();
+          } catch (dbErr) {
+            console.error('从数据库获取抽签记录数量失败:', dbErr);
+            drawHistoryCount = 0;
+          }
+        }
+        
+        console.log('获取到抽签记录数量:', drawHistoryCount);
+      } catch (drawError) {
+        console.error('Error fetching draw history count:', drawError);
+      }
     }
     
     res.render('admin/dashboard', {
       title: '管理员仪表板',
       admin: req.session.admin,
-      forms,
+      forms: forms || [],
+      activities: activities || [],
+      adminCount: adminCount || 0,
+      drawHistoryCount: drawHistoryCount || 0,
       active: 'admin',
       session: req.session
     });
@@ -1091,5 +1242,6 @@ module.exports = {
   // 新添加的功能
   getActiveForms,
   getRecentSubmissions,
-  getMySubmissions
+  getMySubmissions,
+  getQuestionStats
 };

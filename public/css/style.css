@@ -127,7 +127,6 @@ body {
 
 .welcome-banner:hover {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  transform: translateY(-5px);
 }
 
 .welcome-banner-bg {
@@ -167,7 +166,7 @@ body {
 }
 
 .stats-overview .card:hover .display-4 {
-  transform: scale(1.1);
+  transform: none !important; /* 移除缩放效果 */
   color: #007bff;
 }
 
@@ -177,13 +176,13 @@ body {
   border: none;
   overflow: hidden;
   border-radius: 12px;
-  will-change: transform, box-shadow;
+  will-change: box-shadow;
   backface-visibility: hidden; /* 加速渲染 */
   transform: translateZ(0); /* 触发GPU加速 */
 }
 
 .card:hover {
-  transform: translateY(-3px);
+  transform: none !important; /* 移除所有变换效果 */
   box-shadow: 0 10px 20px rgba(0, 123, 255, 0.1) !important;
 }
 
@@ -209,6 +208,9 @@ body {
 
 .navbar-brand {
   font-weight: 600;
+  letter-spacing: 0.5px;
+  font-size: 1rem;
+  padding-right: 0.5rem;
   transition: all 0.3s ease;
 }
 
@@ -217,10 +219,12 @@ body {
 }
 
 .nav-link {
-  padding: 0.8rem 1rem;
-  font-weight: 500;
   position: relative;
   transition: all 0.3s ease;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  white-space: nowrap;
+  font-weight: 500;
 }
 
 .nav-link:after {
@@ -242,20 +246,51 @@ body {
 
 .dropdown-menu {
   border: none;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  animation: fadeIn 0.3s ease;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  margin-top: 0;
+  padding: 0.5rem;
 }
 
 .dropdown-item {
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 2px;
   transition: all 0.2s ease;
-  padding: 0.6rem 1.5rem;
 }
 
 .dropdown-item:hover {
-  background-color: #f0f7ff;
+  background-color: rgba(13, 110, 253, 0.1);
   transform: translateX(5px);
+}
+
+.dropdown-item.active {
+  background-color: rgba(13, 110, 253, 0.2);
+  color: var(--bs-primary);
+  font-weight: 500;
+}
+
+.dropdown-item i {
+  margin-right: 6px;
+  width: 18px;
+  text-align: center;
+}
+
+/* 激活状态的下拉菜单父项 */
+.nav-item.dropdown .nav-link.active {
+  position: relative;
+}
+
+.nav-item.dropdown .nav-link.active:after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50%;
+  height: 3px;
+  background-color: #fff;
+  border-radius: 2px;
 }
 
 /* 特色项目 */
@@ -268,7 +303,6 @@ body {
 
 .feature-item:hover {
   background-color: #f8f9fa;
-  transform: translateY(-5px);
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -300,12 +334,14 @@ body {
 }
 
 .table tbody tr {
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease;
+  backface-visibility: visible !important;
+  transform-style: flat !important;
+  will-change: auto !important;
 }
 
 .table tbody tr:hover {
   background-color: rgba(0, 123, 255, 0.05);
-  transform: scale(1.01);
 }
 
 /* 进度条 */
@@ -334,13 +370,16 @@ body {
 .badge {
   font-weight: 500;
   padding: 0.4em 0.7em;
-  transition: all 0.3s ease;
+  transition: none;
 }
 
-/* 徽章悬停效果 */
-tr:hover .badge, 
+/* 移除徽章悬停效果 */
+tr:hover .badge {
+  transform: none;
+}
+
 .card:hover .badge {
-  transform: scale(1.1);
+  transform: none;
 }
 
 /* 青铜色 */
@@ -366,7 +405,6 @@ tr:hover .badge,
 }
 
 .list-group-item:hover {
-  transform: translateX(5px);
   background-color: #f8f9fa;
 }
 
@@ -380,7 +418,6 @@ tr:hover .badge,
 }
 
 .btn:hover {
-  transform: translateY(-3px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -459,4 +496,748 @@ tr:hover .badge,
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* 导航下拉菜单样式优化 */
+.navbar-nav .dropdown:hover > .dropdown-menu {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 导航栏响应式优化 */
+@media (max-width: 991.98px) {
+  .navbar-collapse {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .dropdown-menu {
+    border: none;
+    box-shadow: none;
+    padding-left: 1rem;
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+  
+  .dropdown-menu.show {
+    display: block;
+    opacity: 1;
+    animation: none;
+  }
+  
+  .dropdown-item {
+    padding: 0.5rem 1rem;
+  }
+  
+  .navbar-toggler {
+    border-color: rgba(0, 123, 255, 0.3);
+    background-color: rgba(0, 123, 255, 0.1);
+  }
+  
+  .navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+}
+
+/* 确保导航内容整齐有序 */
+.navbar-brand {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.nav-link {
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+/* 为导航链接添加下划线动画效果 */
+.nav-link:not(.dropdown-toggle)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: #007bff;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.nav-link:not(.dropdown-toggle):hover::after {
+  width: 70%;
+}
+
+.nav-link.active:not(.dropdown-toggle)::after {
+  width: 80%;
+}
+
+/* 在移动设备上禁用下划线动画 */
+@media (max-width: 991.98px) {
+  .nav-link:not(.dropdown-toggle)::after {
+    display: none;
+  }
+}
+
+/* 桌面设备上的下拉菜单向右展开样式 */
+@media (min-width: 992px) {
+  /* 修改导航菜单项的位置和布局 */
+  .navbar-nav .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  
+  /* 重置所有动画和显示逻辑 */
+  .navbar-nav .dropdown-menu {
+    display: none;
+    animation: none;
+    transition: none;
+  }
+  
+  /* 顶级菜单的子菜单向下展开 */
+  .navbar-nav > .dropdown > .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0;
+    display: none;
+    border: none;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    z-index: 1000;
+  }
+  
+  /* 二级及以下菜单向右展开 */
+  .navbar-nav .dropdown-menu .dropdown > .dropdown-menu {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-top: 0;
+    margin-left: 1px;
+    display: none;
+    border: none;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    z-index: 1001;
+  }
+  
+  /* 鼠标悬停时显示子菜单 */
+  .navbar-nav .dropdown:hover > .dropdown-menu {
+    display: block;
+    opacity: 0;
+  }
+  
+  /* 为一级菜单添加下拉动画 */
+  .navbar-nav > .dropdown:hover > .dropdown-menu {
+    animation: fadeInDown 0.3s ease forwards;
+  }
+  
+  /* 为二级及以下菜单添加右侧展开动画 */
+  .navbar-nav .dropdown-menu .dropdown:hover > .dropdown-menu {
+    animation: fadeInRight 0.3s ease forwards;
+  }
+  
+  /* 下拉菜单项样式 */
+  .dropdown-item {
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    margin: 2px 8px;
+    transition: all 0.2s ease;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(3px);
+  }
+  
+  .dropdown-item.active {
+    background-color: rgba(0, 123, 255, 0.1);
+    color: #007bff;
+    font-weight: 500;
+  }
+  
+  /* 重置箭头样式 */
+  .navbar-nav .dropdown-toggle::after {
+    border-top: 0.3em solid;
+    border-right: 0.3em solid transparent;
+    border-bottom: 0;
+    border-left: 0.3em solid transparent;
+    margin-left: 0.255em;
+  }
+  
+  /* 二级菜单的箭头指向右侧 */
+  .dropdown-menu .dropdown > .dropdown-toggle::after {
+    border-top: 0.3em solid transparent;
+    border-right: 0;
+    border-bottom: 0.3em solid transparent;
+    border-left: 0.3em solid;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+/* 顶级菜单向下展开的动画 */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 二级菜单向右展开的动画 */
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* 基于上下文的水平导航样式 - 修改紧凑布局 */
+@media (min-width: 992px) {
+  /* 导航项紧凑样式 */
+  .navbar-nav .nav-item {
+    margin: 0 1px;
+    position: relative;
+  }
+  
+  /* 主功能导航项的样式（系统入口） */
+  .navbar-nav .nav-item .nav-link.active {
+    position: relative;
+    font-weight: 500;
+    color: #ffffff;
+    background-color: rgba(13, 110, 253, 0.2);
+    border-radius: 4px;
+    padding: 0.8rem 0.8rem;
+    font-size: 1rem;
+  }
+  
+  /* 为主功能导航项添加小标记 */
+  .navbar-nav .nav-item .nav-link.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 15px;
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 2px;
+  }
+  
+  /* 子功能导航项的样式 */
+  .navbar-nav .nav-item.sub-nav-item .nav-link {
+    color: #ffffff;
+    background-color: rgba(86, 180, 255, 0.6);
+    border-radius: 4px;
+    margin: 0 2px;
+    padding-left: 16px; /* 留出空间放置小圆点 */
+    padding-right: 12px;
+    position: relative;
+    font-size: 0.95rem;
+  }
+  
+  /* 子功能导航项悬停效果 */
+  .navbar-nav .nav-item.sub-nav-item .nav-link:hover {
+    color: #ffffff;
+    background-color: rgba(86, 180, 255, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* 更紧凑的子导航项标记 */
+  .navbar-nav .nav-item.sub-nav-item .nav-link::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 2px;
+    font-size: 14px;
+    color: #ffffff;
+  }
+  
+  /* 子导航项目出现动画 */
+  @keyframes fadeInNav {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* 应用动画到子导航项 */
+  .navbar-nav .nav-item .nav-link {
+    animation: fadeInNav 0.3s ease-out;
+  }
+}
+
+/* 缩小导航栏图标尺寸 */
+.navbar-nav .nav-item .nav-link i {
+  margin-right: 4px;
+  font-size: 0.9em;
+  vertical-align: -1px;
+}
+
+/* 子导航项统一样式 */
+.navbar-nav .nav-item.sub-nav-item .nav-link {
+  color: #ffffff;
+  background-color: rgba(86, 180, 255, 0.6);
+  border-radius: 4px;
+  margin: 0 2px;
+  position: relative;
+  font-size: 0.95rem;
+  padding: 0.7rem 0.7rem 0.7rem 16px; /* 统一左侧内边距为16px */
+}
+
+/* 子导航项激活状态 */
+.navbar-nav .nav-item.sub-nav-item .nav-link.sub-active {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 子导航项激活状态悬停效果 */
+.navbar-nav .nav-item.sub-nav-item .nav-link.sub-active:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* 子导航项hover效果 */
+.navbar-nav .nav-item.sub-nav-item .nav-link:hover {
+  color: #ffffff;
+  background-color: rgba(86, 180, 255, 0.8);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 移动设备上的子导航项样式 */
+@media (max-width: 991.98px) {
+  /* 在移动设备上增加导航项间距 */
+  .navbar-nav .nav-item {
+    margin: 4px 0;
+  }
+  
+  .navbar-nav .nav-item.sub-nav-item .nav-link {
+    background-color: rgba(86, 180, 255, 0.5);
+    padding-left: 2.5rem;
+    border-left: 4px solid rgba(255, 255, 255, 0.6);
+    margin-left: 10px;
+    margin-right: 10px;
+    border-radius: 0 4px 4px 0;
+  }
+  
+  /* 移动设备上的子导航项激活状态 */
+  .navbar-nav .nav-item.sub-nav-item .nav-link.sub-active {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-left: 4px solid #ffffff;
+  }
+  
+  /* 移动端的主功能导航项 */
+  .navbar-nav .nav-item .nav-link.active {
+    background-color: rgba(13, 110, 253, 0.3);
+    border-radius: 4px;
+    margin: 0 10px;
+    font-size: 1rem;
+    padding: 0.8rem 1rem;
+  }
+  
+  /* 移动端的子导航标记 */
+  .navbar-nav .nav-item.sub-nav-item .nav-link::before {
+    content: '•';
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #ffffff;
+  }
+  
+  /* 子导航项图标样式 */
+  .navbar-nav .nav-item.sub-nav-item .nav-link i {
+    margin-left: 5px;
+  }
+}
+
+/* 导航容器自定义样式 */
+.nav-container {
+  max-width: 100%;
+  width: 100%;
+  padding: 0 0.5rem;
+}
+
+/* 更紧凑的导航样式，但保持原始文本 */
+@media (min-width: 992px) {
+  /* 主要导航项样式 */
+  .navbar-nav .nav-item .nav-link {
+    padding: 0.8rem 0.8rem;
+    font-size: 1rem;
+    position: relative;
+  }
+  
+  /* 添加导航项活跃状态样式 */
+  .navbar-nav .nav-item .nav-link.active {
+    background-color: rgba(13, 110, 253, 0.2);
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  
+  /* 主要导航容器宽度控制 */
+  .navbar-collapse {
+    justify-content: center;
+  }
+  
+  /* 确保右侧管理员菜单位置 */
+  .navbar-nav.mx-auto {
+    margin-right: auto !important;
+    margin-left: auto !important;
+    flex-grow: 1;
+    justify-content: center;
+  }
+  
+  /* 导航图标样式 */
+  .navbar-nav .nav-item .nav-link i {
+    margin-right: 4px;
+    font-size: 0.9em;
+  }
+}
+
+/* 右侧导航栏样式 */
+.navbar-right {
+  margin-left: 10px;
+  flex-shrink: 0;
+}
+
+/* 管理员登录按钮样式 */
+.admin-login {
+  white-space: nowrap;
+}
+
+/* 针对更小屏幕的额外优化 */
+@media (min-width: 992px) and (max-width: 1200px) {
+  /* 进一步压缩在小桌面屏幕上的导航间距 */
+  .navbar-nav .nav-item .nav-link {
+    padding: 0.8rem 0.6rem;
+    font-size: 0.95rem;
+  }
+  
+  .navbar-brand {
+    font-size: 0.9rem;
+    padding-right: 0.3rem;
+  }
+  
+  /* 在较小屏幕上强制不换行 */
+  .navbar-nav {
+    flex-wrap: nowrap;
+  }
+}
+
+/* 强力禁用所有表格的变换效果 */
+table,
+table *,
+.table,
+.table *,
+.table-responsive,
+.table-responsive *,
+thead, 
+tbody, 
+tr, 
+th, 
+td,
+.badge {
+  transform: none !important;
+  transition: background-color 0.3s ease !important;
+  animation: none !important;
+  box-shadow: none !important;
+  perspective: none !important;
+  backface-visibility: visible !important;
+  transform-style: flat !important;
+  will-change: auto !important;
+  transform-origin: center center !important;
+}
+
+/* 禁用表格行悬停特效 */
+tr:hover, 
+tbody tr:hover, 
+.table tbody tr:hover {
+  transform: none !important;
+  background-color: rgba(0, 123, 255, 0.05) !important;
+}
+
+/* 禁用徽章悬停缩放效果 */
+tr:hover .badge,
+.table tr:hover .badge,
+.card:hover .badge,
+.badge:hover {
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+/* 德育分构成分析卡片样式 */
+.score-analysis-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.score-analysis-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.score-analysis-card .progress {
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.05);
+  overflow: visible;
+}
+
+.score-analysis-card .progress-bar {
+  border-radius: 10px;
+  position: relative;
+}
+
+.activity-participation {
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.05), rgba(13, 202, 240, 0.1));
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.activity-participation-rate {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #0d6efd;
+}
+
+/* 图表容器样式 */
+.chart-container {
+  min-height: 300px;
+  position: relative;
+}
+
+#deyufenCompositionChart {
+  max-height: 350px;
+}
+
+/* 德育分成就互动组件样式 */
+.activity-achievement-widget {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(245, 247, 250, 0.9));
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.activity-achievement-widget:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.achievement-cards {
+  min-height: 120px;
+}
+
+.achievement-card {
+  background: white;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.achievement-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.08);
+  border-color: rgba(13, 110, 253, 0.2);
+}
+
+.achievement-card.locked {
+  background: #f8f9fa;
+  opacity: 0.7;
+}
+
+.achievement-card.locked:hover {
+  opacity: 0.9;
+}
+
+.achievement-card .achievement-icon {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  display: block;
+  text-align: center;
+}
+
+.achievement-card .achievement-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.achievement-card .achievement-desc {
+  font-size: 0.75rem;
+  color: #6c757d;
+  text-align: center;
+}
+
+.achievement-card .achievement-lock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-card .achievement-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: #17a2b8;
+  border-radius: 0 3px 0 0;
+}
+
+.achievement-tip {
+  font-size: 0.85rem;
+  color: #6c757d;
+  border-left: 3px solid #ffc107;
+}
+
+.refresh-achievements {
+  transition: all 0.3s ease;
+}
+
+.refresh-achievements:hover {
+  transform: rotate(180deg) !important;
+}
+
+/* 动画效果 */
+@keyframes achievementUnlock {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.achievement-unlocked {
+  animation: achievementUnlock 0.5s forwards;
+}
+
+/* 学生详情页右侧面板样式 - 匹配截图 */
+.score-info-panel {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.score-value-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.score-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #0dcaf0;
+}
+
+.participation-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.activity-participation-card {
+  background: linear-gradient(to right, #e3f2fd, #f0f7ff);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+.attendance-card {
+  background-color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.participation-percentage {
+  display: flex;
+  align-items: baseline;
+}
+
+.percentage-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #0d6efd;
+  line-height: 1;
+}
+
+.percentage-symbol {
+  font-size: 14px;
+  color: #6c757d;
+  margin-left: 2px;
+}
+
+/* 更圆润的进度条 */
+.progress.rounded-pill {
+  height: 8px !important;
+  border-radius: 20px !important;
+  overflow: hidden;
+  background-color: #e9ecef;
+}
+
+/* 样式化标题和副标题 */
+h6.text-muted {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c757d !important;
+  margin-bottom: 10px;
+}
+
+/* 青色背景色和文本颜色 */
+.bg-cyan {
+  background-color: #0dcaf0 !important;
+}
+
+.text-cyan {
+  color: #0dcaf0 !important;
+}
+
+/* 卡片标题样式优化 */
+.card-header.bg-cyan {
+  background: linear-gradient(135deg, #0dcaf0, #0d95fd);
+  border-bottom: none;
+}
+
+/* 右侧面板内容布局调整 */
+.score-info-panel {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 调整活动参与率布局 */
+.activity-participation-card {
+  background: linear-gradient(to right, #e3f2fd, #f0f7ff);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+/* 活动参与率进度条样式 */
+.progress {
+  background-color: rgba(255, 255, 255, 0.5);
 } 

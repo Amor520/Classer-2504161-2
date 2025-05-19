@@ -20,6 +20,9 @@
             <a href="/deyufen" class="btn btn-success">
               <i class="bi bi-trophy"></i> 德育分系统
             </a>
+            <a href="/draw" class="btn btn-info">
+              <i class="bi bi-shuffle"></i> 抽签系统
+            </a>
             <% if (admin.role === 2) { %>
             <a href="/admin/manage" class="btn btn-danger">
               <i class="bi bi-people"></i> 管理员管理
@@ -37,7 +40,7 @@
   <% if (admin.role === 2) { %>
   <!-- 超级管理员统计卡片 -->
   <div class="row mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3">
       <div class="card border-0 shadow-sm">
         <div class="card-body text-center">
           <h5 class="card-title"><i class="bi bi-file-earmark-text"></i> 总表单数</h5>
@@ -45,19 +48,41 @@
         </div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
       <div class="card border-0 shadow-sm">
         <div class="card-body text-center">
           <h5 class="card-title"><i class="bi bi-activity"></i> 活动总数</h5>
-          <p class="display-4">-</p>
+          <p class="display-4"><%= activities ? activities.length : 0 %></p>
         </div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
       <div class="card border-0 shadow-sm">
         <div class="card-body text-center">
           <h5 class="card-title"><i class="bi bi-people"></i> 管理员人数</h5>
-          <p class="display-4">-</p>
+          <p class="display-4"><%= adminCount || 0 %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title"><i class="bi bi-shuffle"></i> 抽签记录数</h5>
+          <p class="display-4"><%= drawHistoryCount || 0 %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 调试信息，仅开发时使用 -->
+  <div class="row mb-2 d-none">
+    <div class="col-12">
+      <div class="card border-0 bg-light">
+        <div class="card-body">
+          <h6>调试信息</h6>
+          <p>activities: <%= JSON.stringify(activities) %></p>
+          <p>adminCount: <%= adminCount %></p>
+          <p>drawHistoryCount: <%= drawHistoryCount %></p>
         </div>
       </div>
     </div>
@@ -141,6 +166,9 @@
             </a>
             <a href="/refresh-scores" class="btn btn-outline-info">
               <i class="bi bi-arrow-repeat"></i> 刷新德育分
+            </a>
+            <a href="/draw" class="btn btn-outline-secondary">
+              <i class="bi bi-shuffle"></i> 抽签系统
             </a>
           </div>
         </div>

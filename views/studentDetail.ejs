@@ -1,4 +1,8 @@
 <%- include('partials/header') %>
+<!-- 引入成就部件样式 -->
+<link rel="stylesheet" href="/css/achievement.css">
+<!-- 确保Chart.js库正确加载 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div class="row">
   <div class="col-md-4 mb-4">
@@ -36,17 +40,13 @@
         <div class="mb-4">
           <h5>德育分总览</h5>
           <div class="progress mb-2" style="height: 30px;">
-            <div class="progress-bar 
-              <%= studentData.总分 >= 90 ? 'bg-success' : 
-                 (studentData.总分 >= 80 ? 'bg-info' : 
-                  (studentData.总分 >= 70 ? 'bg-primary' : 
-                   (studentData.总分 >= 60 ? 'bg-warning' : 'bg-danger'))) %>" 
+            <div class="progress-bar bg-primary" 
               role="progressbar" 
-              style="width: <%= (studentData.总分 / 100) * 100 %>%;" 
+              style="width: 100%;" 
               aria-valuenow="<%= studentData.总分 %>" 
               aria-valuemin="0" 
               aria-valuemax="100">
-              <%= studentData.总分 %> / 100
+              <%= studentData.总分 %>
             </div>
           </div>
           <small class="text-muted">最后更新时间: <%= new Date(studentData.更新时间).toLocaleString('zh-CN') %></small>
@@ -54,7 +54,7 @@
         
         <h5>活动参与情况</h5>
         <div class="table-responsive">
-          <table class="table table-striped table-hover">
+          <table class="table table-striped table-hover" id="studentActivitiesTable">
             <thead class="table-light">
               <tr>
                 <th>活动名称</th>
@@ -86,59 +86,281 @@
   </div>
 </div>
 
-<!-- 图表区域 -->
 <div class="row">
   <div class="col-12 mb-4">
-    <div class="card shadow-sm">
-      <div class="card-header bg-info text-white">
+    <div class="card shadow-sm score-analysis-card">
+      <div class="card-header bg-cyan text-white d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0"><i class="bi bi-pie-chart"></i> 德育分构成分析</h5>
+        <span class="badge bg-white text-cyan fs-5 px-3 py-2 rounded-pill"><%= studentData.总分 %> 分</span>
       </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-8">
-            <canvas id="deyufenCompositionChart"></canvas>
-          </div>
-          <div class="col-md-4">
-            <div class="mb-4">
-              <h6>德育分等级</h6>
-              <% 
-                let grade = '';
-                let gradeClass = '';
-                
-                if (studentData.总分 >= 90) {
-                  grade = '优秀';
-                  gradeClass = 'success';
-                } else if (studentData.总分 >= 80) {
-                  grade = '良好';
-                  gradeClass = 'info';
-                } else if (studentData.总分 >= 70) {
-                  grade = '中等';
-                  gradeClass = 'primary';
-                } else if (studentData.总分 >= 60) {
-                  grade = '及格';
-                  gradeClass = 'warning';
-                } else {
-                  grade = '不及格';
-                  gradeClass = 'danger';
-                }
-              %>
-              <div class="alert alert-<%= gradeClass %> text-center">
-                <h4><%= grade %></h4>
-                <p class="mb-0"><%= studentData.总分 %> 分</p>
+      <div class="card-body p-3">
+        <div class="row g-3">
+          <!-- 左侧成就小部件 -->
+          <div class="col-md-4 col-lg-3 order-md-1">
+            <div class="activity-achievement-widget mb-3 h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0"><i class="bi bi-stars"></i> 德育分成就</h6>
+                <button class="btn btn-sm btn-outline-info refresh-achievements" id="refreshAchievements">
+                  <i class="bi bi-arrow-repeat"></i> 刷新
+                </button>
+              </div>
+              
+              <div class="achievement-cards">
+                <div class="row g-2" id="achievementContainer">
+                  <!-- 默认显示的成就卡片 -->
+                  <div class="col-6 achievement-card-wrapper">
+                    <div class="achievement-card" data-id="newbie">
+                      <i class="bi bi-egg achievement-icon" style="color: #17a2b8"></i>
+                      <div class="achievement-title">初出茅庐</div>
+                      <div class="achievement-desc">参与了第一个活动，获得首个德育分</div>
+                    </div>
+                  </div>
+                  <div class="col-6 achievement-card-wrapper">
+                    <div class="achievement-card locked" data-id="regular">
+                      <i class="bi bi-calendar-check achievement-icon" style="color: #28a745"></i>
+                      <div class="achievement-title">活跃参与者</div>
+                      <div class="achievement-desc">参与了至少5个不同活动</div>
+                      <div class="achievement-lock">
+                        <i class="bi bi-lock"></i>
+                      </div>
+                      <div class="achievement-progress" style="width: 40%"></div>
+                    </div>
+                  </div>
+                  <div class="col-6 achievement-card-wrapper">
+                    <div class="achievement-card" data-id="highscore">
+                      <i class="bi bi-award achievement-icon" style="color: #ffc107"></i>
+                      <div class="achievement-title">成绩优异</div>
+                      <div class="achievement-desc">德育分达到8分以上</div>
+                    </div>
+                  </div>
+                  <div class="col-6 achievement-card-wrapper">
+                    <div class="achievement-card locked" data-id="perfectionist">
+                      <i class="bi bi-check-all achievement-icon" style="color: #0dcaf0"></i>
+                      <div class="achievement-title">完美主义者</div>
+                      <div class="achievement-desc">完成所有必修活动并获得满分</div>
+                      <div class="achievement-lock">
+                        <i class="bi bi-lock"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="achievement-tip mt-3 p-2 rounded bg-light">
+                <div class="d-flex">
+                  <i class="bi bi-lightbulb text-warning me-2 fs-5"></i>
+                  <div class="achievement-tip-text" id="achievementTip">点击刷新按钮探索更多可能获得的成就！</div>
+                </div>
               </div>
             </div>
-            
-            <div>
-              <h6>活动参与</h6>
-              <p>参与活动数: <span class="badge bg-primary"><%= studentActivities.length %></span></p>
-              <div class="progress mb-3" style="height: 10px;">
-                <div class="progress-bar bg-info" role="progressbar" 
-                     style="width: <%= (studentActivities.length / 10) * 100 %>%;" 
-                     aria-valuenow="<%= studentActivities.length %>" 
-                     aria-valuemin="0" 
-                     aria-valuemax="10"></div>
+          </div>
+          
+          <!-- 中间图表区域 -->
+          <div class="col-md-5 col-lg-6 order-md-2">
+            <div class="chart-container bg-white p-3 rounded-3 shadow-sm h-100 d-flex flex-column justify-content-center">
+              <h6 class="text-muted mb-3 text-center">德育分构成</h6>
+              
+              <% if (studentActivities && studentActivities.length > 0) { %>
+                <!-- 图表加载提示 -->
+                <div class="chart-loading text-center mb-3" id="chartLoading">
+                  <div class="spinner-border text-info" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="text-muted mt-2">正在加载德育分构成数据...</p>
+                </div>
+                
+                <!-- 图表区域 -->
+                <div class="chart-area position-relative">
+                  <!-- 图表容器 -->
+                  <canvas id="deyufenCompositionChart"></canvas>
+                  
+                  <!-- 备用图表视图 (默认隐藏) -->
+                  <div id="fallbackChartView" style="display: none;" class="w-100">
+                    <div class="table-responsive mt-3">
+                      <table class="table table-sm">
+                        <thead>
+                          <tr>
+                            <th>活动名称</th>
+                            <th>分数</th>
+                            <th>占比</th>
+                          </tr>
+                        </thead>
+                        <tbody id="fallbackChartData">
+                          <% 
+                            if (studentActivities && studentActivities.length > 0) {
+                              let totalScore = 0;
+                              studentActivities.forEach(activity => {
+                                totalScore += (activity.加分 || 0);
+                              });
+                              
+                              studentActivities.forEach(activity => {
+                                const score = activity.加分 || 0;
+                                const percentage = totalScore > 0 ? Math.round((score / totalScore) * 100) : 0;
+                          %>
+                            <tr>
+                              <td><%= activity.活动名称 %></td>
+                              <td><%= score %> 分</td>
+                              <td>
+                                <div class="d-flex align-items-center">
+                                  <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                    <div class="progress-bar" style="width: <%= percentage %>%; background-color: rgba(54, 162, 235, 0.7);"></div>
+                                  </div>
+                                  <span><%= percentage %>%</span>
+                                </div>
+                              </td>
+                            </tr>
+                          <% 
+                              });
+                            } 
+                          %>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 图表说明文字 -->
+                <div class="chart-info text-center mt-3">
+                  <p class="text-muted small">此图表展示了德育分的构成来源及比例</p>
+                  <div class="btn-group btn-group-sm mt-2">
+                    <button class="btn btn-outline-secondary btn-sm active" id="viewAsChart">
+                      <i class="bi bi-pie-chart"></i> 图表视图
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" id="viewAsTable">
+                      <i class="bi bi-table"></i> 表格视图
+                    </button>
+                  </div>
+                </div>
+                
+                <script>
+                  // 视图切换功能
+                  document.addEventListener('DOMContentLoaded', function() {
+                    const viewAsChart = document.getElementById('viewAsChart');
+                    const viewAsTable = document.getElementById('viewAsTable');
+                    const chartCanvas = document.getElementById('deyufenCompositionChart');
+                    const fallbackView = document.getElementById('fallbackChartView');
+                    
+                    if (viewAsChart && viewAsTable && chartCanvas && fallbackView) {
+                      viewAsChart.addEventListener('click', function() {
+                        this.classList.add('active');
+                        viewAsTable.classList.remove('active');
+                        chartCanvas.style.display = 'block';
+                        fallbackView.style.display = 'none';
+                      });
+                      
+                      viewAsTable.addEventListener('click', function() {
+                        this.classList.add('active');
+                        viewAsChart.classList.remove('active');
+                        chartCanvas.style.display = 'none';
+                        fallbackView.style.display = 'block';
+                      });
+                      
+                      // 如果图表加载失败，自动切换到表格视图
+                      window.switchToTableView = function() {
+                        viewAsTable.click();
+                      };
+                    }
+                  });
+                </script>
+              <% } else { %>
+                <!-- 无数据时显示的内容 -->
+                <div class="chart-empty">
+                  <i class="bi bi-pie-chart text-muted"></i>
+                  <h5 class="mt-3">暂无德育分数据</h5>
+                  <p class="text-muted mb-4">参与活动后，这里将显示德育分构成分析</p>
+                  
+                  <!-- 无数据时的替代内容 -->
+                  <div class="achievement-grid w-100 mt-3">
+                    <div class="achievement-block">
+                      <i class="bi bi-trophy text-warning"></i>
+                      <div class="title">目标分数</div>
+                      <div class="value">10.0</div>
+                    </div>
+                    <div class="achievement-block">
+                      <i class="bi bi-check-circle text-success"></i>
+                      <div class="title">当前得分</div>
+                      <div class="value"><%= studentData.总分 %></div>
+                    </div>
+                    <div class="achievement-block">
+                      <i class="bi bi-clipboard-data text-info"></i>
+                      <div class="title">完成度</div>
+                      <div class="value"><%= Math.round((studentData.总分 / 10) * 100) %>%</div>
+                    </div>
+                    <div class="achievement-block">
+                      <i class="bi bi-bar-chart-line text-primary"></i>
+                      <div class="title">活动参与</div>
+                      <div class="value"><%= studentActivities ? studentActivities.length : 0 %></div>
+                    </div>
+                  </div>
+                </div>
+              <% } %>
+            </div>
+          </div>
+          
+          <!-- 右侧信息面板 -->
+          <div class="col-md-3 col-lg-3 order-md-3">
+            <div class="score-info-panel h-100 d-flex flex-column">
+              <!-- 分数部分 -->
+              <div class="mb-3 bg-white p-3 rounded-3 shadow-sm">
+                <h6 class="text-muted mb-2">总分</h6>
+                <div class="position-relative">
+                  <div class="score-value-container mb-2">
+                    <span class="score-value fs-1 fw-bold text-info"><%= studentData.总分 %></span>
+                    <span class="text-muted">分</span>
+                  </div>
+                  <!-- 分数进度条 -->
+                  <div class="progress rounded-pill" style="height: 8px;">
+                    <div class="progress-bar bg-info" style="width: 100%;"></div>
+                  </div>
+                  <div class="mt-2">
+                    <small class="text-muted">最近更新: <%= new Date(studentData.更新时间).toLocaleDateString('zh-CN') %></small>
+                  </div>
+                </div>
               </div>
-              <small class="text-muted">活动参与率: <%= Math.round((studentActivities.length / 10) * 100) %>%</small>
+              
+              <!-- 活动参与率部分 -->
+              <div class="mb-3 bg-white p-3 rounded-3 shadow-sm">
+                <h6 class="text-muted mb-2">活动参与情况</h6>
+                <div class="participation-item mb-2">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span>参与数</span>
+                    <span class="fw-bold"><%= studentActivities.length %></span>
+                  </div>
+                  <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-primary" 
+                        style="width: <%= (studentActivities.length / 10) * 100 %>%;" 
+                        aria-valuenow="<%= studentActivities.length %>" 
+                        aria-valuemin="0" 
+                        aria-valuemax="10"></div>
+                  </div>
+                  <div class="d-flex justify-content-between mt-1">
+                    <small class="text-muted">0</small>
+                    <small class="text-muted">5</small>
+                    <small class="text-muted">10</small>
+                  </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <span>参与率</span>
+                  <div class="participation-percentage">
+                    <span class="percentage-value fs-4 fw-bold text-primary"><%= Math.round((studentActivities.length / 10) * 100) %>%</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 考勤情况 -->
+              <div class="mb-3 flex-grow-1 bg-white p-3 rounded-3 shadow-sm">
+                <h6 class="text-muted mb-2">考勤情况</h6>
+                <div class="attendance-card">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span>出勤率</span>
+                    <span class="fw-bold fs-4 text-success">80%</span>
+                  </div>
+                  <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-success" style="width: 80%;"></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -147,67 +369,632 @@
   </div>
 </div>
 
+<style>
+  #studentActivitiesTable * {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    perspective: none !important;
+  }
+  
+  .badge {
+    transform: none !important;
+    transition: none !important;
+  }
+  
+  #deyufenCompositionChart {
+    max-height: 350px;
+  }
+  
+  .progress {
+    border-radius: 10px;
+    background-color: rgba(0,0,0,0.05);
+    overflow: visible;
+  }
+  
+  .progress-bar {
+    border-radius: 10px;
+    position: relative;
+  }
+  
+  /* 卡片交互效果 */
+  .participation-item, .activity-participation-card, .attendance-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  /* 确保信息面板内容正确对齐 */
+  .score-info-panel h6 {
+    margin-bottom: 10px;
+  }
+  
+  /* 德育分构成分析卡片样式 */
+  .score-analysis-card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  .score-analysis-card .card-header {
+    background: linear-gradient(135deg, #17a2b8, #0dcaf0);
+    padding: 1rem;
+  }
+  
+  .bg-cyan {
+    background-color: #17a2b8 !important;
+  }
+  
+  .text-cyan {
+    color: #17a2b8 !important;
+  }
+  
+  /* 图表容器样式 */
+  .chart-container {
+    height: 100%;
+    min-height: 300px;
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 10px;
+    position: relative;
+  }
+  
+  /* 图表空白状态样式 */
+  .chart-empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 2rem;
+  }
+  
+  .chart-empty i {
+    font-size: 3.5rem;
+    color: rgba(23, 162, 184, 0.2);
+    margin-bottom: 1rem;
+  }
+  
+  .chart-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 5;
+    border-radius: 10px;
+  }
+  
+  /* 中间区域卡片式布局 */
+  .achievement-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .achievement-block {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .achievement-block i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .achievement-block .title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  
+  .achievement-block .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #17a2b8;
+  }
+  
+  /* 图表信息样式 */
+  .chart-info {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed rgba(0,0,0,0.1);
+  }
+  
+  /* 图表区域增强样式 */
+  .chart-area {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* 信息面板样式 */
+  .score-info-panel {
+    height: 100%;
+  }
+  
+  .score-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #17a2b8;
+    line-height: 1;
+  }
+  
+  .percentage-value {
+    font-weight: 700;
+    color: #0d6efd;
+  }
+  
+  /* 响应式调整 */
+  @media (max-width: 767.98px) {
+    .chart-container {
+      min-height: 250px;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .score-info-panel > div {
+      margin-bottom: 1rem;
+    }
+  }
+</style>
+
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // 德育分构成饼图
-    const compositionCtx = document.getElementById('deyufenCompositionChart').getContext('2d');
+    const compositionCtx = document.getElementById('deyufenCompositionChart');
     
-    const activityNames = [
-      <% 
-        if (studentActivities && studentActivities.length > 0) {
-          studentActivities.forEach((activity, index) => {
-      %>
-        '<%= activity.活动名称 %>'<%= index < studentActivities.length - 1 ? ',' : '' %>
-      <% 
+    // 添加进度条动画效果
+    animateProgressBars();
+    
+    // 添加数据信息互动效果
+    setupInfoPanelInteractions();
+
+    // 只有在元素存在且有活动数据时才初始化图表
+    if (compositionCtx && <%= studentActivities && studentActivities.length > 0 ? 'true' : 'false' %>) {
+      const ctx = compositionCtx.getContext('2d');
+      
+      const activityNames = [
+        <% 
+          if (studentActivities && studentActivities.length > 0) {
+            studentActivities.forEach((activity, index) => {
+        %>
+          '<%= activity.活动名称 %>'<%= index < studentActivities.length - 1 ? ',' : '' %>
+        <% 
+            });
+          }
+        %>
+      ];
+      
+      const activityValues = [
+        <% 
+          if (studentActivities && studentActivities.length > 0) {
+            studentActivities.forEach((activity, index) => {
+        %>
+          <%= activity.加分 || 0 %><%= index < studentActivities.length - 1 ? ',' : '' %>
+        <% 
+            });
+          }
+        %>
+      ];
+      
+      // 确保有数据可以显示
+      if (activityNames.length > 0 && activityValues.length > 0) {
+        const activityColors = [
+          'rgba(54, 162, 235, 0.7)',
+          'rgba(75, 192, 192, 0.7)',
+          'rgba(153, 102, 255, 0.7)',
+          'rgba(255, 159, 64, 0.7)',
+          'rgba(255, 99, 132, 0.7)',
+          'rgba(255, 206, 86, 0.7)',
+          'rgba(199, 199, 199, 0.7)',
+          'rgba(83, 102, 255, 0.7)',
+          'rgba(40, 167, 69, 0.7)',
+          'rgba(220, 53, 69, 0.7)'
+        ];
+        
+        try {
+          // 检查Chart是否可用
+          if (typeof Chart === 'undefined') {
+            throw new Error('Chart.js 未找到，请检查脚本引入');
+          }
+
+          // 创建简单的示例数据以防数据异常
+          if (activityNames.length !== activityValues.length) {
+            console.warn('活动名称和数值数量不匹配，使用模拟数据');
+            activityNames = ['活动1', '活动2', '活动3'];
+            activityValues = [3, 4, 2];
+          }
+
+          // 确保至少有一个非零值
+          const hasValidData = activityValues.some(value => value > 0);
+          if (!hasValidData) {
+            activityValues = activityValues.map(() => 1); // 将所有值设为1
+          }
+          
+          // 图表配置
+          const chartConfig = {
+            type: 'doughnut',
+            data: {
+              labels: activityNames,
+              datasets: [{
+                data: activityValues,
+                backgroundColor: activityColors.slice(0, activityNames.length),
+                borderWidth: 1,
+                borderColor: '#fff',
+                hoverBorderWidth: 2,
+                hoverBorderColor: '#fff'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '70%',
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    padding: 15,
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    font: {
+                      size: 11
+                    }
+                  }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      const value = context.raw;
+                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                      const percentage = Math.round((value / total) * 100);
+                      return `${context.label}: ${value} 分 (${percentage}%)`;
+                    }
+                  }
+                }
+              },
+              animation: {
+                onComplete: function() {
+                  // 图表加载完成，隐藏加载提示
+                  const loadingElement = document.getElementById('chartLoading');
+                  if (loadingElement) {
+                    loadingElement.style.display = 'none';
+                  }
+                }
+              }
+            }
+          };
+          
+          // 创建图表实例
+          const deyufenChart = new Chart(ctx, chartConfig);
+          
+          // 添加图表重绘方法以应对可能的布局问题
+          function resizeChart() {
+            if (deyufenChart) {
+              deyufenChart.resize();
+            }
+          }
+          
+          // 监听窗口大小变化，适当调整图表大小
+          window.addEventListener('resize', resizeChart);
+          
+          // 确保在标签页切换时图表正确显示
+          document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+              setTimeout(resizeChart, 200);
+            }
           });
-        }
-      %>
-    ];
-    
-    const activityValues = [
-      <% 
-        if (studentActivities && studentActivities.length > 0) {
-          studentActivities.forEach((activity, index) => {
-      %>
-        <%= activity.加分 || 0 %><%= index < studentActivities.length - 1 ? ',' : '' %>
-      <% 
-          });
-        }
-      %>
-    ];
-    
-    const activityColors = [
-      'rgba(255, 99, 132, 0.7)',
-      'rgba(54, 162, 235, 0.7)',
-      'rgba(255, 206, 86, 0.7)',
-      'rgba(75, 192, 192, 0.7)',
-      'rgba(153, 102, 255, 0.7)',
-      'rgba(255, 159, 64, 0.7)',
-      'rgba(199, 199, 199, 0.7)',
-      'rgba(83, 102, 255, 0.7)',
-      'rgba(40, 167, 69, 0.7)',
-      'rgba(220, 53, 69, 0.7)'
-    ];
-    
-    new Chart(compositionCtx, {
-      type: 'doughnut',
-      data: {
-        labels: activityNames,
-        datasets: [{
-          data: activityValues,
-          backgroundColor: activityColors,
-          borderWidth: 1
-        }]
-      },
-      options: {
-        plugins: {
-          title: {
-            display: true,
-            text: '<%= studentData.姓名 %> 德育分构成'
+          
+        } catch (error) {
+          console.error('图表初始化错误:', error);
+          // 显示错误提示并提供重试选项
+          const chartContainer = document.querySelector('.chart-container');
+          const loadingElement = document.getElementById('chartLoading');
+          
+          if (loadingElement) {
+            loadingElement.style.display = 'none';
+          }
+          
+          if (chartContainer) {
+            chartContainer.innerHTML += `
+              <div class="chart-error text-center p-3">
+                <i class="bi bi-exclamation-triangle text-warning fs-1"></i>
+                <p class="text-muted my-2">图表加载失败: ${error.message || '未知错误'}</p>
+                <button class="btn btn-sm btn-outline-info mt-2" onclick="window.location.reload()">
+                  <i class="bi bi-arrow-clockwise"></i> 刷新重试
+                </button>
+              </div>
+            `;
+          }
+          
+          // 自动切换到表格视图作为备用显示方式
+          if (typeof window.switchToTableView === 'function') {
+            setTimeout(() => {
+              window.switchToTableView();
+            }, 1000);
           }
         }
+      } else {
+        // 没有有效数据时显示提示
+        const loadingElement = document.getElementById('chartLoading');
+        if (loadingElement) {
+          loadingElement.style.display = 'none';
+        }
+        
+        const chartContainer = document.querySelector('.chart-container');
+        if (chartContainer && compositionCtx) {
+          compositionCtx.style.display = 'none';
+          chartContainer.innerHTML += `
+            <div class="chart-empty text-center">
+              <i class="bi bi-bar-chart text-muted fs-1"></i>
+              <p class="text-muted mt-2">暂无足够的德育分数据可供显示</p>
+            </div>
+          `;
+        }
       }
-    });
+    }
+    
+    // 德育分成就互动组件逻辑
+    initAchievementSystem();
+    
+    // 进度条动画效果
+    function animateProgressBars() {
+      const progressBars = document.querySelectorAll('.progress-bar');
+      
+      progressBars.forEach(bar => {
+        // 先将宽度设为0
+        const targetWidth = bar.style.width;
+        bar.style.width = '0%';
+        
+        // 使用延迟让动画有序进行
+        setTimeout(() => {
+          bar.style.transition = 'width 1s ease-in-out';
+          bar.style.width = targetWidth;
+        }, 200);
+      });
+    }
+    
+    // 信息面板交互效果
+    function setupInfoPanelInteractions() {
+      // 添加卡片悬停效果
+      const infoCards = document.querySelectorAll('.participation-item, .activity-participation-card, .attendance-card');
+      
+      infoCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-3px)';
+          this.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.04)';
+        });
+      });
+      
+      // 点击数据项时显示更多信息的功能
+      const dataItems = document.querySelectorAll('.participation-percentage, .fw-bold');
+      
+      dataItems.forEach(item => {
+        item.addEventListener('click', function() {
+          this.classList.toggle('highlight-pulse');
+          
+          setTimeout(() => {
+            this.classList.remove('highlight-pulse');
+          }, 1000);
+        });
+      });
+    }
+  });
+</script>
+
+<!-- 成就系统独立脚本 -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 德育分成就互动组件逻辑初始化
+    initAchievementSystem();
+    
+    function initAchievementSystem() {
+      const refreshBtn = document.getElementById('refreshAchievements');
+      const achievementContainer = document.getElementById('achievementContainer');
+      const achievementTip = document.getElementById('achievementTip');
+      const totalScore = <%= studentData.总分 %>;
+      const activitiesCount = <%= studentActivities.length %>;
+      
+      // 成就数据库 - 预设一些有趣的成就
+      const achievements = [
+        {
+          id: 'newbie',
+          title: '初出茅庐',
+          icon: 'bi-egg',
+          color: '#17a2b8',
+          description: '参与了第一个活动，获得首个德育分',
+          condition: function() { return activitiesCount >= 1; },
+          tip: '这是迈出的第一步，继续加油！'
+        },
+        {
+          id: 'regular',
+          title: '活跃参与者',
+          icon: 'bi-calendar-check',
+          color: '#28a745',
+          description: '参与了至少5个不同活动',
+          condition: function() { return activitiesCount >= 5; },
+          progress: function() { return Math.min(activitiesCount / 5, 1); },
+          tip: '持续参与各类活动能够全面提升自己的能力。'
+        },
+        {
+          id: 'highscore',
+          title: '成绩优异',
+          icon: 'bi-award',
+          color: '#ffc107',
+          description: '德育分达到8分以上',
+          condition: function() { return totalScore >= 8; },
+          progress: function() { return Math.min(totalScore / 8, 1); },
+          tip: '优秀的成绩是对你努力的认可，继续保持！'
+        },
+        {
+          id: 'allrounder',
+          title: '全能达人',
+          icon: 'bi-stars',
+          color: '#6f42c1',
+          description: '德育分达到6+且活动数达到7+',
+          condition: function() { return totalScore >= 6 && activitiesCount >= 7; },
+          tip: '你在各方面都表现出色，这是难得的全面发展！'
+        },
+        {
+          id: 'persistent',
+          title: '坚持不懈',
+          icon: 'bi-battery-charging',
+          color: '#fd7e14',
+          description: '连续三个月保持活动参与',
+          condition: function() { return Math.random() > 0.7; },
+          tip: '坚持是成功的关键，你做到了！'
+        },
+        {
+          id: 'volunteer',
+          title: '志愿先锋',
+          icon: 'bi-heart',
+          color: '#dc3545',
+          description: '参与志愿服务类活动',
+          condition: function() { return Math.random() > 0.5; },
+          tip: '奉献爱心，服务社会，你是最棒的！'
+        },
+        {
+          id: 'leadership',
+          title: '领导才能',
+          icon: 'bi-flag',
+          color: '#20c997',
+          description: '组织或领导了班级活动',
+          condition: function() { return Math.random() > 0.6; },
+          tip: '领导力是一种难得的品质，你正在培养这种能力！'
+        },
+        {
+          id: 'perfectionist',
+          title: '完美主义者',
+          icon: 'bi-check-all',
+          color: '#0dcaf0',
+          description: '完成所有必修活动并获得满分',
+          condition: function() { return totalScore >= 9.5 || Math.random() > 0.9; },
+          tip: '追求完美的态度让你在各方面都表现出色！'
+        }
+      ];
+      
+      // 为已有的成就卡片绑定点击事件
+      bindAchievementCardEvents();
+      
+      // 刷新按钮点击事件
+      refreshBtn.addEventListener('click', function() {
+        // 添加旋转动画
+        this.classList.add('rotating');
+        
+        // 展示新的随机成就
+        showRandomAchievements(4);
+        
+        // 随机显示一条成就提示
+        const unlockedAchievements = achievements.filter(function(a) { 
+          return a.condition(); 
+        });
+        
+        if (unlockedAchievements.length > 0) {
+          const randomAchievement = unlockedAchievements[Math.floor(Math.random() * unlockedAchievements.length)];
+          achievementTip.textContent = randomAchievement.tip;
+        } else {
+          achievementTip.textContent = '继续参与活动可以解锁更多成就！';
+        }
+        
+        // 移除旋转动画
+        setTimeout(function() {
+          refreshBtn.classList.remove('rotating');
+        }, 500);
+      });
+      
+      // 显示随机成就卡片
+      function showRandomAchievements(count) {
+        // 清空容器
+        achievementContainer.innerHTML = '';
+        
+        // 随机打乱成就数组
+        const shuffled = achievements.slice();
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        
+        // 取前count个
+        const selected = shuffled.slice(0, count);
+        
+        // 创建成就卡片
+        selected.forEach(function(achievement) {
+          const isUnlocked = achievement.condition();
+          const cardElement = document.createElement('div');
+          cardElement.className = 'col-6 achievement-card-wrapper';
+          
+          // 计算进度条宽度
+          let progressWidth = '0%';
+          if (achievement.progress && !isUnlocked) {
+            progressWidth = Math.round(achievement.progress() * 100) + '%';
+          }
+          
+          cardElement.innerHTML = 
+            '<div class="achievement-card ' + (isUnlocked ? '' : 'locked') + '" data-id="' + achievement.id + '">' +
+              '<i class="bi ' + achievement.icon + ' achievement-icon" style="color: ' + achievement.color + '"></i>' +
+              '<div class="achievement-title">' + achievement.title + '</div>' +
+              '<div class="achievement-desc">' + achievement.description + '</div>' +
+              (isUnlocked ? '' : 
+                '<div class="achievement-lock">' +
+                  '<i class="bi bi-lock"></i>' +
+                '</div>' +
+                (achievement.progress ? 
+                  '<div class="achievement-progress" style="width: ' + progressWidth + '"></div>' : '')
+              ) +
+            '</div>';
+          
+          achievementContainer.appendChild(cardElement);
+        });
+        
+        // 为新生成的卡片绑定事件
+        bindAchievementCardEvents();
+      }
+      
+      // 绑定成就卡片事件
+      function bindAchievementCardEvents() {
+        const cards = document.querySelectorAll('.achievement-card');
+        cards.forEach(function(card) {
+          const achievementId = card.getAttribute('data-id');
+          const achievement = achievements.find(function(a) { 
+            return a.id === achievementId; 
+          });
+          
+          if (achievement) {
+            card.addEventListener('click', function() {
+              // 显示对应的提示
+              achievementTip.textContent = achievement.tip || '继续努力以解锁更多成就！';
+              
+              // 如果是锁定状态，添加轻微晃动效果
+              if (this.classList.contains('locked')) {
+                this.classList.add('shake');
+                setTimeout(function() {
+                  card.classList.remove('shake');
+                }, 500);
+              } else {
+                // 如果已解锁，添加脉冲效果
+                this.classList.add('pulse');
+                setTimeout(function() {
+                  card.classList.remove('pulse');
+                }, 500);
+              }
+            });
+          }
+        });
+      }
+    }
   });
 </script>
 

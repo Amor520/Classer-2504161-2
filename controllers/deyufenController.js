@@ -12,6 +12,32 @@ exports.checkActivityAuth = (req, res, next) => {
   next();
 };
 
+// 验证超级管理员权限的中间件
+exports.checkSuperAdminAuth = (req, res, next) => {
+  // 检查会话中是否有超级管理员权限标记
+  if (!req.session || !req.session.adminType || req.session.adminType !== 'super') {
+    // 没有权限，重定向到权限验证页面或显示错误
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      // 对于AJAX请求，返回JSON错误
+      return res.status(403).json({
+        success: false,
+        message: '权限不足，需要超级管理员权限'
+      });
+    } else {
+      // 对于普通请求，重定向或显示错误页面
+      req.session.authRedirectTo = req.originalUrl;
+      return res.render('error', {
+        title: '权限不足',
+        message: '此操作需要超级管理员权限',
+        active: 'activity'
+      });
+    }
+  }
+  
+  // 有权限，继续下一步
+  next();
+};
+
 // 显示活动权限验证页面
 exports.showActivityAuth = (req, res) => {
   res.render('activityAuth', {
@@ -164,13 +190,9 @@ exports.allActivities = async (req, res) => {
     // 获取所有活动
     const activities = await deyufenModel.getActivities();
     
-    // 检查用户是否有活动管理权限
-    const hasAuth = req.session && req.session.hasActivityAuth === true;
-    
     res.render('allActivities', {
       title: '所有活动列表',
       activities,
-      hasAuth, // 传递权限状态给视图
       active: 'activities'
     });
   } catch (error) {
@@ -206,14 +228,10 @@ exports.activityDetail = async (req, res) => {
     
     const participants = await deyufenModel.getActivityParticipants(activityId);
     
-    // 检查用户是否有活动管理权限
-    const hasAuth = req.session && req.session.hasActivityAuth === true;
-    
     res.render('activityDetail', {
       title: `${activity.活动名称} 详情`,
       activity,
       participants,
-      hasAuth, // 传递权限状态给视图
       active: 'activity'
     });
   } catch (error) {
@@ -329,8 +347,8 @@ exports.showAssignActivityScores = async (req, res) => {
       // 使用后清除会话中的值，避免影响后续活动
       delete req.session.defaultScore;
       console.log('从会话中获取默认分值:', defaultScore);
-    } else if (activity && typeof activity.默认分值 !== 'undefined') {
-      defaultScore = parseFloat(activity.默认分值) || 1;
+    } else if (activity && typeof activity.defaultScore !== 'undefined') {
+      defaultScore = parseFloat(activity.defaultScore) || 1;
       console.log('从活动数据中获取默认分值:', defaultScore);
     }
     
@@ -369,15 +387,36 @@ exports.assignActivityScores = async (req, res) => {
       });
     }
     
-    // 将学生ID和分值组合成数组对象
-    const studentScores = Array.isArray(studentIds) 
-      ? studentIds.map((studentId, index) => ({
-          studentId,
-          score: parseFloat(scores[index]) || 0
-        }))
-      : [{ studentId: studentIds, score: parseFloat(scores) || 0 }];
+    // 检查scores是否存在
+    if (!scores) {
+      console.log('未提供分值');
+      return res.status(400).render('error', { 
+        title: '参数错误',
+        message: '请提供有效的分值' 
+      });
+    }
     
-    console.log('处理的学生分值数组:', studentScores);
+    // 将学生ID和分值组合成数组对象
+    let studentScores = [];
+    try {
+      studentScores = Array.isArray(studentIds) 
+        ? studentIds.map((studentId, index) => {
+            const score = Array.isArray(scores) ? scores[index] : scores;
+            return {
+              studentId,
+              score: parseFloat(score) || 0
+            };
+          })
+        : [{ studentId: studentIds, score: parseFloat(scores) || 0 }];
+      
+      console.log('处理的学生分值数组:', studentScores);
+    } catch (err) {
+      console.error('处理学生分值数据时出错:', err);
+      return res.status(400).render('error', { 
+        title: '数据处理错误',
+        message: '处理学生分值数据时出错: ' + err.message
+      });
+    }
     
     // 添加学生到活动
     await deyufenModel.addStudentsToActivity(activityId, studentScores);
@@ -409,12 +448,18 @@ exports.assignActivityScores = async (req, res) => {
       console.warn('以下学生总分更新失败:', failedUpdates);
     }
     
+    // 增加信息到会话
+    req.session.message = {
+      type: 'success',
+      text: `已成功为 ${successfulUpdates.length} 名学生分配活动分值`
+    };
+    
     res.redirect(`/activity/${activityId}`);
   } catch (error) {
     console.error('Error assigning activity scores:', error);
     res.status(500).render('error', { 
       title: '分配失败',
-      message: '分配活动分值失败，请稍后再试' 
+      message: '分配活动分值失败: ' + (error.message || '未知错误') 
     });
   }
 };
@@ -451,7 +496,7 @@ exports.showEditStudentScore = async (req, res) => {
       title: `修改分值 - ${student.姓名} - ${activity.活动名称}`,
       student,
       activity,
-      score: participant ? participant.加分 : activity.默认分值 || 0,
+      score: participant ? participant.加分 : activity.defaultScore || 0,
       active: 'activity'
     });
   } catch (error) {
@@ -572,6 +617,152 @@ exports.formSubmissions = async (req, res) => {
     res.status(500).render('error', { 
       title: '服务器错误',
       message: '服务器错误，请稍后再试' 
+    });
+  }
+};
+
+// 删除活动
+exports.deleteActivity = async (req, res) => {
+  try {
+    const activityId = req.params.id;
+    
+    // 增强参数验证
+    if (!activityId) {
+      return res.status(400).json({
+        success: false,
+        message: '未提供活动ID'
+      });
+    }
+    
+    // 检查ID是否为有效值（不能是字符串"all"）
+    if (activityId === 'all') {
+      return res.status(400).json({
+        success: false,
+        message: '无效的活动ID'
+      });
+    }
+    
+    // 检查ID是否存在于数据库中
+    const activities = await deyufenModel.getActivities();
+    const activityExists = activities.some(a => String(a.活动ID) === String(activityId));
+    
+    if (!activityExists) {
+      return res.status(404).json({
+        success: false,
+        message: '找不到指定活动，可能已被删除'
+      });
+    }
+    
+    // 获取当前用户信息
+    let deletedBy = '未知用户';
+    if (req.session && req.session.admin) {
+      deletedBy = req.session.admin.username || req.session.admin.name || '未知用户';
+    }
+    
+    // 执行删除操作
+    await deyufenModel.deleteActivity(activityId, deletedBy);
+    
+    // 判断请求类型，返回适当的响应
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.json({
+        success: true,
+        message: '活动删除成功'
+      });
+    } else {
+      // 添加成功消息到会话
+      req.session.message = {
+        type: 'success',
+        text: '活动删除成功'
+      };
+      return res.redirect('/activity/all');
+    }
+  } catch (error) {
+    console.error('删除活动时出错:', error);
+    
+    // 判断请求类型，返回适当的错误
+    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || '删除活动失败'
+      });
+    } else {
+      // 添加错误消息到会话
+      req.session.message = {
+        type: 'danger',
+        text: '删除活动失败: ' + (error.message || '服务器错误')
+      };
+      return res.redirect('/activity/all');
+    }
+  }
+};
+
+// 获取删除历史记录
+exports.getDeleteHistory = async (req, res) => {
+  try {
+    const deleteHistory = await deyufenModel.getDeleteHistory();
+    
+    res.render('activityDeleteHistory', {
+      title: '删除历史记录',
+      history: deleteHistory,
+      active: 'activity'
+    });
+  } catch (error) {
+    console.error('获取删除历史记录出错:', error);
+    
+    // 添加错误消息到会话
+    req.session.message = {
+      type: 'danger',
+      text: '获取删除历史记录失败: ' + (error.message || '服务器错误')
+    };
+    return res.redirect('/activity/all');
+  }
+};
+
+// 删除单条历史记录
+exports.deleteHistoryRecord = async (req, res) => {
+  try {
+    const id = req.params.id;
+    
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: '未提供记录ID'
+      });
+    }
+    
+    // 执行删除操作
+    const result = await deyufenModel.deleteHistoryRecord(id);
+    
+    return res.json({
+      success: result,
+      message: result ? '删除历史记录成功' : '找不到指定记录'
+    });
+  } catch (error) {
+    console.error('删除历史记录时出错:', error);
+    
+    return res.status(500).json({
+      success: false,
+      message: error.message || '删除历史记录失败'
+    });
+  }
+};
+
+// 清空所有删除历史记录
+exports.clearDeleteHistory = async (req, res) => {
+  try {
+    // 执行清空操作
+    const affectedRows = await deyufenModel.clearDeleteHistory();
+    
+    return res.json({
+      success: true,
+      message: `成功清空 ${affectedRows} 条历史记录`
+    });
+  } catch (error) {
+    console.error('清空删除历史记录时出错:', error);
+    
+    return res.status(500).json({
+      success: false,
+      message: error.message || '清空历史记录失败'
     });
   }
 }; 

@@ -59,11 +59,7 @@
                 <td class="score"><%= student.总分 %></td>
                 <td>
                   <div class="text-center">
-                    <span class="score-badge 
-                      <%= student.总分 >= 90 ? 'score-excellent' : 
-                         (student.总分 >= 80 ? 'score-good' : 
-                          (student.总分 >= 70 ? 'score-average' : 
-                           (student.总分 >= 60 ? 'score-pass' : 'score-fail'))) %>">
+                    <span class="score-badge">
                       <%= student.总分 %>分
                     </span>
                   </div>
@@ -128,6 +124,48 @@
   .score-fail {
     background: linear-gradient(135deg, #dc3545, #f86b6b);
     color: white;
+  }
+  
+  /* 强力禁用表格的所有变换效果 */
+  #overviewTable,
+  #overviewTable *,
+  #overviewTable tr,
+  #overviewTable td,
+  #overviewTable th,
+  #overviewTable tbody,
+  #overviewTable thead {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+    perspective: none !important;
+    backface-visibility: visible !important;
+    transform-style: flat !important;
+    transition-property: background-color, border-color !important;
+    will-change: auto !important;
+  }
+  
+  /* 对排名徽章单独处理，禁用所有变换和过渡特效 */
+  #overviewTable .badge,
+  #overviewTable .badge:hover,
+  #overviewTable tr:hover .badge {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  /* 确保表格悬浮只改变背景色而不做任何其它变化 */
+  #overviewTable tr:hover {
+    background-color: rgba(0, 123, 255, 0.05) !important;
+    transform: none !important;
+  }
+  
+  /* 强制表格整体稳定 */
+  .table-responsive {
+    overflow-x: auto;
+    transform: none !important;
+    backface-visibility: visible !important;
+    perspective: none !important;
   }
 </style>
 

@@ -12,6 +12,82 @@
   <!-- 将effects.js放在底部，优化页面加载速度 -->
   <script src="/js/effects.js" defer></script>
   
+  <!-- 导航菜单增强脚本 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 设置导航栏滚动效果
+      const navbar = document.querySelector('.navbar');
+      if (navbar) {
+        window.addEventListener('scroll', function() {
+          if (window.scrollY > 10) {
+            navbar.classList.add('scrolled');
+          } else {
+            navbar.classList.remove('scrolled');
+          }
+        });
+      }
+      
+      // 处理移动设备上的导航栏
+      const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+      const navbarToggler = document.querySelector('.navbar-toggler');
+      const navbarCollapse = document.querySelector('.navbar-collapse');
+      
+      // 在移动设备上点击导航链接后自动收起菜单
+      navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+          if (window.innerWidth < 992 && navbarCollapse.classList.contains('show')) {
+            navbarToggler.click();
+          }
+        });
+      });
+      
+      // 当前活动页面的高亮处理
+      const currentPath = window.location.pathname;
+      
+      // 检查路径来确定是否在子功能页面
+      const isFormsSubpage = currentPath.startsWith('/forms/');
+      const isDeyufenSubpage = currentPath.match(/^\/(overview|ranking|activities|activity|student)/);
+      const isDrawSubpage = currentPath === '/draw' || currentPath.startsWith('/draw/');
+      
+      // 首先清除所有的active和sub-active类
+      navLinks.forEach(link => {
+        link.classList.remove('active', 'sub-active');
+      });
+      
+      // 应用高亮到对应的链接
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+        
+        // 主功能链接激活
+        if ((href === '/forms' && isFormsSubpage) || 
+            (href === '/deyufen' && isDeyufenSubpage) || 
+            (href === '/draw' && isDrawSubpage)) {
+          link.classList.add('active');
+        } else if (href === '/' && currentPath === '/') {
+          // 首页链接特殊处理
+          link.classList.add('active');
+        } else if (currentPath === href) {
+          // 精确匹配当前路径的子功能链接
+          if (isFormsSubpage || isDeyufenSubpage || isDrawSubpage) {
+            link.classList.add('sub-active');
+          } else {
+            link.classList.add('active');
+          }
+        }
+      });
+      
+      // 特殊处理带有锚点的链接
+      if (window.location.hash) {
+        const hash = window.location.hash;
+        const hashLink = document.querySelector(`.nav-link[href$="${hash}"]`);
+        if (hashLink) {
+          hashLink.classList.add('sub-active');
+        }
+      }
+    });
+  </script>
+  
   <!-- 只有在需要粒子效果的页面才初始化 -->
   <script>
     // 确保DOM加载完成并且particles.js已加载

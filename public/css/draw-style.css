@@ -15,7 +15,6 @@
 
 .draw-pool-wrapper:hover {
   box-shadow: 0 15px 35px rgba(13, 110, 253, 0.2);
-  transform: translateY(-5px);
 }
 
 /* 抽签池左右两侧 */
@@ -25,6 +24,9 @@
   transition: all 0.4s ease;
   padding: 1.5rem !important;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .draw-pool-side:first-child {
@@ -43,9 +45,8 @@
   text-align: center;
   font-weight: 600;
   position: relative;
-  display: inline-block;
-  left: 50%;
-  transform: translateX(-50%);
+  display: block;
+  width: 100%;
   padding-bottom: 0.5rem;
 }
 
@@ -53,8 +54,9 @@
   content: '';
   position: absolute;
   bottom: 0;
-  left: 0;
-  width: 100%;
+  left: 50%;
+  width: 60%;
+  transform: translateX(-50%);
   height: 3px;
   background: linear-gradient(90deg, transparent, currentColor, transparent);
   border-radius: 3px;
@@ -144,7 +146,6 @@
 
 .settings-card:hover {
   box-shadow: 0 15px 35px rgba(40, 167, 69, 0.2);
-  transform: translateY(-5px);
 }
 
 .settings-card .card-header {
@@ -167,7 +168,6 @@
 
 .results-card:hover {
   box-shadow: 0 15px 35px rgba(13, 202, 240, 0.2);
-  transform: translateY(-5px);
 }
 
 .results-card .card-header {
@@ -272,30 +272,16 @@
   animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   box-shadow: 0 5px 15px rgba(25, 135, 84, 0.2);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   transition: all 0.3s ease;
+  z-index: 1;
+  min-width: 80px;
+  text-align: center;
 }
 
 .result-item:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(25, 135, 84, 0.3);
-}
-
-.result-item::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), transparent);
-  transform: rotate(45deg);
-  animation: shine 3s infinite;
-}
-
-@keyframes shine {
-  0% { transform: translateX(-100%) rotate(45deg); }
-  100% { transform: translateX(100%) rotate(45deg); }
 }
 
 @keyframes popIn {
@@ -332,7 +318,6 @@
 
 .history-card:hover {
   box-shadow: 0 15px 35px rgba(255, 193, 7, 0.2);
-  transform: translateY(-5px);
 }
 
 .history-card .card-header {
@@ -554,6 +539,108 @@
   transform: translateY(-2px);
 }
 
+/* 学生选择区域样式 */
+.student-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 12px;
+  background-color: rgba(248, 249, 250, 0.8);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.form-check-inline {
+  margin-right: 0;
+  background-color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.form-check-inline:hover {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* 已报名学生样式 */
+.signed-students-container .form-check-inline {
+  border-color: rgba(13, 202, 240, 0.3);
+}
+
+.signed-student-checkbox:checked + .form-check-label {
+  color: #0dcaf0;
+  font-weight: 600;
+}
+
+.signed-student-checkbox:checked ~ .form-check-inline {
+  background-color: rgba(13, 202, 240, 0.1);
+}
+
+/* 不参与抽签学生样式 */
+.excluded-students-container .form-check-inline {
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.excluded-student-checkbox:checked + .form-check-label {
+  color: #fd7e14;
+  font-weight: 600;
+}
+
+.excluded-student-checkbox:checked ~ .form-check-inline {
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+/* 结果项特殊标记样式 */
+.result-item.signed {
+  background: linear-gradient(135deg, #cff4fc, #9eeaf9);
+  color: #055160;
+  position: relative;
+}
+
+.result-item.signed::after {
+  content: "报名";
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: #0dcaf0;
+  color: white;
+  font-size: 0.7rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.result-item.excluded {
+  background: linear-gradient(135deg, #fff3cd, #ffe69c);
+  color: #664d03;
+  position: relative;
+}
+
+.result-item.excluded::after {
+  content: attr(data-reason);
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: #fd7e14;
+  color: white;
+  font-size: 0.7rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
 /* 响应式调整 */
 @media (max-width: 768px) {
   .draw-pool-wrapper {
@@ -613,4 +700,119 @@
 @keyframes alertPulse {
   0% { box-shadow: 0 0 15px rgba(13, 202, 240, 0.2); }
   100% { box-shadow: 0 0 15px rgba(13, 202, 240, 0.6); }
+}
+
+/* 抽签历史详情模态框样式 */
+#drawDetailModal .modal-content {
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.draw-detail-header {
+  background: linear-gradient(45deg, #ffc107, #fd7e14);
+  color: #343a40;
+  border: none;
+  padding: 1rem 1.5rem;
+}
+
+.draw-detail-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.draw-detail-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+}
+
+.draw-detail-card .card-header {
+  background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+  border: none;
+  font-weight: 600;
+  color: #495057;
+}
+
+#detailStudentsList {
+  min-height: 150px;
+}
+
+/* 详情页中的学生类型样式 */
+.student-item {
+  position: relative;
+  padding: 10px 16px;
+  border-radius: 30px;
+  font-weight: 600;
+  text-align: center;
+  min-width: 80px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.student-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.student-item.all {
+  background: linear-gradient(135deg, #d1e7dd, #b6effb);
+  color: #0f5132;
+}
+
+.student-item.signed {
+  background: linear-gradient(135deg, #cff4fc, #9eeaf9);
+  color: #055160;
+}
+
+.student-item.signed::after {
+  content: "报名";
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: #0dcaf0;
+  color: white;
+  font-size: 0.7rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.student-item.random {
+  background: linear-gradient(135deg, #fff3cd, #ffe69c);
+  color: #664d03;
+}
+
+.student-item.random::after {
+  content: "随机";
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: #fd7e14;
+  color: white;
+  font-size: 0.7rem;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.student-item.hidden {
+  display: none;
+}
+
+/* 删除按钮样式修改 */
+.delete-record {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.delete-record i {
+  font-size: 0.8rem;
 } 
