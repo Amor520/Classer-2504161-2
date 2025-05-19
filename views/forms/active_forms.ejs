@@ -1,0 +1,67 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h2 class="mb-0">活跃表单</h2>
+      <div>
+        <a href="/forms" class="btn btn-light me-2">
+          <i class="fas fa-home"></i> 表单主页
+        </a>
+        <% if (locals.admin) { %>
+        <a href="/forms/create" class="btn btn-light">
+          <i class="fas fa-plus"></i> 创建新表单
+        </a>
+        <% } %>
+      </div>
+    </div>
+    <div class="card-body">
+      <% if (forms && forms.length > 0) { %>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          <% forms.forEach(form => { %>
+            <div class="col">
+              <div class="card h-100 border-0 shadow-sm hover-card">
+                <div class="card-body">
+                  <h5 class="card-title text-truncate"><%= form.title %></h5>
+                  <p class="card-text text-muted small">
+                    <i class="fas fa-user"></i> <%= form.creator_name || '未知' %> · 
+                    <i class="fas fa-calendar-alt"></i> <%= new Date(form.created_at).toLocaleDateString('zh-CN') %>
+                  </p>
+                  <p class="card-text text-truncate">
+                    <%= form.description || '暂无描述' %>
+                  </p>
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                  <a href="/forms/view/<%= form.id %>" class="btn btn-primary w-100">
+                    <i class="fas fa-pen"></i> 填写表单
+                  </a>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="text-center py-5">
+          <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+          <h3>没有未填写的表单</h3>
+          <p class="text-muted">您已填写完所有表单，或者暂无可填写的表单</p>
+          <a href="/forms" class="btn btn-primary mt-3">
+            <i class="fas fa-home"></i> 返回表单主页
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .hover-card {
+    transition: all 0.3s ease;
+  }
+  .hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  }
+</style>
+
+<%- include('../partials/footer') %> 

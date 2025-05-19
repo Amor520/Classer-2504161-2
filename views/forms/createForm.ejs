@@ -1,0 +1,470 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h2 class="mb-0">创建表单</h2>
+    </div>
+    <div class="card-body">
+      <form id="form-builder">
+        <div class="mb-3">
+          <label for="form-title" class="form-label">表单标题</label>
+          <input type="text" class="form-control" id="form-title" required>
+        </div>
+        
+        <div class="mb-3">
+          <label for="form-description" class="form-label">表单说明（可选）</label>
+          <textarea class="form-control" id="form-description" rows="3"></textarea>
+        </div>
+        
+        <div class="mb-4">
+          <label class="form-label">表单问题</label>
+          <div id="questions-container">
+            <!-- 问题将在这里动态添加 -->
+          </div>
+          
+          <button type="button" class="btn btn-success mt-3" id="add-question-btn">
+            <i class="fas fa-plus"></i> 添加问题
+          </button>
+        </div>
+        
+        <div class="d-flex justify-content-between">
+          <a href="/forms" class="btn btn-secondary">取消</a>
+          <button type="submit" class="btn btn-primary">保存表单</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 问题类型模板 -->
+<template id="question-template">
+  <div class="question-item card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>问题 <span class="question-number"></span></span>
+      <button type="button" class="btn btn-sm btn-danger remove-question-btn">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="mb-3">
+        <label class="form-label">问题标题</label>
+        <input type="text" class="form-control question-title" required>
+      </div>
+      
+      <div class="mb-3">
+        <label class="form-label">问题类型</label>
+        <select class="form-select question-type">
+          <option value="text">单行文本</option>
+          <option value="textarea">多行文本</option>
+          <option value="radio">单选题</option>
+          <option value="checkbox">多选题</option>
+          <option value="dropdown">下拉选择</option>
+          <option value="date">日期选择</option>
+          <option value="signature">签名</option>
+          <option value="file">文件上传</option>
+          <option value="rating">评分</option>
+          <option value="number">数字输入</option>
+        </select>
+      </div>
+      
+      <div class="options-container d-none">
+        <label class="form-label">选项</label>
+        <div class="options-list">
+          <!-- 选项将在这里动态添加 -->
+        </div>
+        
+        <button type="button" class="btn btn-sm btn-outline-secondary mt-2 add-option-btn">
+          <i class="fas fa-plus"></i> 添加选项
+        </button>
+      </div>
+      
+      <!-- 评分设置 -->
+      <div class="rating-options d-none">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">最低分</label>
+              <input type="number" class="form-control rating-min" value="1" min="0" max="9">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">最高分</label>
+              <input type="number" class="form-control rating-max" value="5" min="1" max="10">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 文件上传设置 -->
+      <div class="file-options d-none">
+        <div class="mb-3">
+          <label class="form-label">允许的文件类型</label>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="image" id="file-type-image-template" checked>
+            <label class="form-check-label" for="file-type-image-template">图片 (jpg, jpeg, png, gif)</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="document" id="file-type-document-template">
+            <label class="form-check-label" for="file-type-document-template">文档 (pdf, doc, docx)</label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 数字输入设置 -->
+      <div class="number-options d-none">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">最小值</label>
+              <input type="number" class="form-control number-min" value="0">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">最大值</label>
+              <input type="number" class="form-control number-max" value="100">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-check mt-3">
+        <input class="form-check-input question-required" type="checkbox" checked>
+        <label class="form-check-label">
+          必填项
+        </label>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- 选项模板 -->
+<template id="option-template">
+  <div class="input-group mb-2 option-item">
+    <input type="text" class="form-control option-text" placeholder="选项内容" required>
+    <button class="btn btn-outline-danger remove-option-btn" type="button">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</template>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 如果有模板数据，填充表单
+    const templateData = <%- templateForm ? templateForm : 'null' %>;
+    
+    if (templateData) {
+      document.getElementById('form-title').value = templateData.title;
+      document.getElementById('form-description').value = templateData.description || '';
+      
+      // 添加问题
+      templateData.questions.forEach(question => {
+        addQuestion(question);
+      });
+    }
+    
+    // 添加问题按钮
+    document.getElementById('add-question-btn').addEventListener('click', () => {
+      addQuestion();
+    });
+    
+    // 表单提交
+    document.getElementById('form-builder').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      console.log('表单提交开始');
+      
+      const title = document.getElementById('form-title').value;
+      const description = document.getElementById('form-description').value;
+      const questions = [];
+      
+      // 收集所有问题
+      document.querySelectorAll('.question-item').forEach((questionEl, index) => {
+        const type = questionEl.querySelector('.question-type').value;
+        const questionTitle = questionEl.querySelector('.question-title').value;
+        const required = questionEl.querySelector('.question-required').checked;
+        
+        const question = {
+          id: index.toString(),
+          text: questionTitle,
+          type: type,
+          required: required
+        };
+        
+        // 如果是选择题，收集选项
+        if (['radio', 'checkbox', 'dropdown'].includes(type)) {
+          const options = [];
+          questionEl.querySelectorAll('.option-text').forEach(optionEl => {
+            options.push(optionEl.value);
+          });
+          question.options = options;
+        }
+        
+        // 如果是评分题，收集评分范围
+        if (type === 'rating') {
+          question.min = parseInt(questionEl.querySelector('.rating-min').value, 10);
+          question.max = parseInt(questionEl.querySelector('.rating-max').value, 10);
+        }
+        
+        // 如果是数字输入，收集范围
+        if (type === 'number') {
+          question.min = parseInt(questionEl.querySelector('.number-min').value, 10);
+          question.max = parseInt(questionEl.querySelector('.number-max').value, 10);
+        }
+        
+        // 如果是文件上传，收集允许的文件类型
+        if (type === 'file') {
+          const allowedTypes = [];
+          questionEl.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+            allowedTypes.push(checkbox.value);
+          });
+          question.allowedTypes = allowedTypes;
+        }
+        
+        questions.push(question);
+      });
+      
+      // 验证
+      if (questions.length === 0) {
+        alert('请至少添加一个问题');
+        return;
+      }
+      
+      // 显示加载状态
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+      
+      try {
+        console.log('发送请求到服务器:', {
+          title,
+          description,
+          questions
+        });
+        
+        const response = await fetch('/api/forms/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            questions
+          })
+        });
+        
+        console.log('服务器响应状态:', response.status);
+        const data = await response.json();
+        console.log('服务器响应数据:', data);
+        
+        if (data.success) {
+          window.location.href = data.redirect_url;
+        } else {
+          alert('创建表单失败: ' + data.message);
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('创建表单失败，请稍后再试');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    });
+    
+    // 动态事件处理
+    document.addEventListener('click', (e) => {
+      // 删除问题
+      if (e.target.closest('.remove-question-btn')) {
+        e.target.closest('.question-item').remove();
+        updateQuestionNumbers();
+      }
+      
+      // 添加选项
+      if (e.target.closest('.add-option-btn')) {
+        const optionsContainer = e.target.closest('.options-container').querySelector('.options-list');
+        addOption(optionsContainer);
+      }
+      
+      // 删除选项
+      if (e.target.closest('.remove-option-btn')) {
+        e.target.closest('.option-item').remove();
+      }
+    });
+    
+    // 问题类型变化时显示/隐藏相关设置
+    document.addEventListener('change', (e) => {
+      if (e.target.classList.contains('question-type')) {
+        const questionItem = e.target.closest('.question-item');
+        const optionsContainer = questionItem.querySelector('.options-container');
+        const ratingOptions = questionItem.querySelector('.rating-options');
+        const fileOptions = questionItem.querySelector('.file-options');
+        const numberOptions = questionItem.querySelector('.number-options');
+        
+        // 隐藏所有设置区域
+        optionsContainer.classList.add('d-none');
+        ratingOptions.classList.add('d-none');
+        fileOptions.classList.add('d-none');
+        numberOptions.classList.add('d-none');
+        
+        // 根据问题类型显示对应设置
+        if (['radio', 'checkbox', 'dropdown'].includes(e.target.value)) {
+          optionsContainer.classList.remove('d-none');
+          
+          // 如果没有选项，添加两个默认选项
+          const optionsList = optionsContainer.querySelector('.options-list');
+          if (optionsList.children.length === 0) {
+            addOption(optionsList);
+            addOption(optionsList);
+          }
+        } else if (e.target.value === 'rating') {
+          ratingOptions.classList.remove('d-none');
+        } else if (e.target.value === 'file') {
+          fileOptions.classList.remove('d-none');
+        } else if (e.target.value === 'number') {
+          numberOptions.classList.remove('d-none');
+        }
+      }
+    });
+    
+    // 添加问题
+    function addQuestion(questionData = null) {
+      const template = document.getElementById('question-template');
+      const questionsContainer = document.getElementById('questions-container');
+      
+      const questionEl = template.content.cloneNode(true);
+      questionsContainer.appendChild(questionEl);
+      
+      const questionItem = questionsContainer.lastElementChild;
+      questionItem.querySelector('.question-number').textContent = document.querySelectorAll('.question-item').length;
+      
+      // 生成唯一ID
+      const uniqueId = `question-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      
+      // 找到文件类型输入和标签并更新ID
+      try {
+        const fileTypeImageInput = questionItem.querySelector('[id$="file-type-image-template"]');
+        if (fileTypeImageInput) {
+          const newImageId = `file-type-image-${uniqueId}`;
+          const imageLabel = questionItem.querySelector(`label[for$="file-type-image-template"]`);
+          
+          fileTypeImageInput.id = newImageId;
+          if (imageLabel) {
+            imageLabel.setAttribute('for', newImageId);
+          }
+        }
+        
+        const fileTypeDocumentInput = questionItem.querySelector('[id$="file-type-document-template"]');
+        if (fileTypeDocumentInput) {
+          const newDocumentId = `file-type-document-${uniqueId}`;
+          const documentLabel = questionItem.querySelector(`label[for$="file-type-document-template"]`);
+          
+          fileTypeDocumentInput.id = newDocumentId;
+          if (documentLabel) {
+            documentLabel.setAttribute('for', newDocumentId);
+          }
+        }
+      } catch (error) {
+        console.error('更新ID时出错:', error);
+      }
+      
+      // 如果有问题数据，填充
+      if (questionData) {
+        questionItem.querySelector('.question-title').value = questionData.text;
+        
+        const typeSelect = questionItem.querySelector('.question-type');
+        typeSelect.value = questionData.type;
+        
+        questionItem.querySelector('.question-required').checked = questionData.required !== false;
+        
+        // 如果是选择题，添加选项
+        if (['radio', 'checkbox', 'dropdown'].includes(questionData.type)) {
+          const optionsContainer = questionItem.querySelector('.options-container');
+          optionsContainer.classList.remove('d-none');
+          
+          const optionsList = optionsContainer.querySelector('.options-list');
+          
+          if (questionData.options && questionData.options.length > 0) {
+            questionData.options.forEach(option => {
+              addOption(optionsList, option);
+            });
+          } else {
+            addOption(optionsList);
+            addOption(optionsList);
+          }
+        }
+        
+        // 如果是评分题，设置评分范围
+        if (questionData.type === 'rating') {
+          const ratingOptions = questionItem.querySelector('.rating-options');
+          ratingOptions.classList.remove('d-none');
+          
+          if (questionData.min !== undefined) {
+            questionItem.querySelector('.rating-min').value = questionData.min;
+          }
+          
+          if (questionData.max !== undefined) {
+            questionItem.querySelector('.rating-max').value = questionData.max;
+          }
+        }
+        
+        // 如果是数字输入，设置范围
+        if (questionData.type === 'number') {
+          const numberOptions = questionItem.querySelector('.number-options');
+          numberOptions.classList.remove('d-none');
+          
+          if (questionData.min !== undefined) {
+            questionItem.querySelector('.number-min').value = questionData.min;
+          }
+          
+          if (questionData.max !== undefined) {
+            questionItem.querySelector('.number-max').value = questionData.max;
+          }
+        }
+        
+        // 如果是文件上传，设置允许的文件类型
+        if (questionData.type === 'file') {
+          const fileOptions = questionItem.querySelector('.file-options');
+          fileOptions.classList.remove('d-none');
+          
+          if (questionData.allowedTypes && questionData.allowedTypes.length > 0) {
+            questionData.allowedTypes.forEach(type => {
+              // 使用属性选择器更安全地查找元素
+              const checkbox = questionItem.querySelector(`[id^="file-type-${type}-"]`);
+              if (checkbox) {
+                checkbox.checked = true;
+              }
+            });
+          }
+        }
+      }
+    }
+    
+    // 添加选项
+    function addOption(container, optionText = '') {
+      const template = document.getElementById('option-template');
+      const optionEl = template.content.cloneNode(true);
+      container.appendChild(optionEl);
+      
+      if (optionText) {
+        container.lastElementChild.querySelector('.option-text').value = optionText;
+      }
+    }
+    
+    // 更新问题序号
+    function updateQuestionNumbers() {
+      document.querySelectorAll('.question-item').forEach((questionEl, index) => {
+        questionEl.querySelector('.question-number').textContent = index + 1;
+      });
+    }
+  });
+</script>
+
+<!-- 签名插件 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/signature_pad@4.1.5/dist/signature_pad.css">
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.5/dist/signature_pad.umd.min.js"></script>
+
+<%- include('../partials/footer') %>

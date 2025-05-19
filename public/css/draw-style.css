@@ -1,0 +1,616 @@
+/* 抽签池相关样式 */
+
+/* 抽签池整体容器 */
+.draw-pool-wrapper {
+  display: flex;
+  min-height: 300px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: none;
+  background: linear-gradient(to right, rgba(13, 110, 253, 0.05), rgba(102, 16, 242, 0.05));
+  box-shadow: 0 10px 25px rgba(13, 110, 253, 0.15);
+  position: relative;
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.draw-pool-wrapper:hover {
+  box-shadow: 0 15px 35px rgba(13, 110, 253, 0.2);
+  transform: translateY(-5px);
+}
+
+/* 抽签池左右两侧 */
+.draw-pool-side {
+  flex: 1;
+  overflow-y: auto;
+  transition: all 0.4s ease;
+  padding: 1.5rem !important;
+  position: relative;
+}
+
+.draw-pool-side:first-child {
+  border-right: 2px solid rgba(13, 110, 253, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.draw-pool-side:last-child {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* 抽签池标题 */
+.draw-pool-side h6 {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+  position: relative;
+  display: inline-block;
+  left: 50%;
+  transform: translateX(-50%);
+  padding-bottom: 0.5rem;
+}
+
+.draw-pool-side h6::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  border-radius: 3px;
+}
+
+.draw-pool-side:first-child h6::after {
+  background: linear-gradient(90deg, transparent, #0d6efd, transparent);
+}
+
+.draw-pool-side:last-child h6::after {
+  background: linear-gradient(90deg, transparent, #198754, transparent);
+}
+
+/* 抽签池项目容器 */
+.draw-pool-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* 抽签池项目 */
+.draw-pool-item {
+  padding: 10px 16px;
+  background-color: #fff;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  transform: scale(1);
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* 项目悬停效果 */
+.draw-pool-item:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+/* 项目点击效果 */
+.draw-pool-item:active {
+  transform: scale(0.95);
+}
+
+/* 已抽项目样式 */
+.draw-pool-item.drawn {
+  background-color: #d1e7dd;
+  border-color: #badbcc;
+  box-shadow: 0 4px 8px rgba(25, 135, 84, 0.15);
+}
+
+.draw-pool-item.drawn:hover {
+  background-color: #c3e6cb;
+  box-shadow: 0 6px 12px rgba(25, 135, 84, 0.2);
+}
+
+/* 高亮项目样式 */
+.draw-pool-item.highlight {
+  background-color: #cfe2ff;
+  border-color: #b6d4fe;
+  transform: scale(1.1);
+  box-shadow: 0 8px 16px rgba(13, 110, 253, 0.2);
+  animation: pulse-highlight 1s infinite alternate;
+  z-index: 3;
+}
+
+@keyframes pulse-highlight {
+  0% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4); }
+  100% { box-shadow: 0 0 0 10px rgba(13, 110, 253, 0); }
+}
+
+/* 抽签设置卡片 */
+.settings-card {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(40, 167, 69, 0.15);
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  height: 100%;
+  background-image: linear-gradient(135deg, #f8f9fa 0%, rgba(40, 167, 69, 0.05) 100%);
+}
+
+.settings-card:hover {
+  box-shadow: 0 15px 35px rgba(40, 167, 69, 0.2);
+  transform: translateY(-5px);
+}
+
+.settings-card .card-header {
+  background: linear-gradient(45deg, #198754, #20c997);
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+}
+
+/* 抽签结果卡片 */
+.results-card {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(13, 202, 240, 0.15);
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  height: 100%;
+  background-image: linear-gradient(135deg, #f8f9fa 0%, rgba(13, 202, 240, 0.05) 100%);
+}
+
+.results-card:hover {
+  box-shadow: 0 15px 35px rgba(13, 202, 240, 0.2);
+  transform: translateY(-5px);
+}
+
+.results-card .card-header {
+  background: linear-gradient(45deg, #0dcaf0, #6610f2);
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+}
+
+/* 抽签动画层 */
+.draw-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+  border-radius: 16px;
+  box-shadow: inset 0 0 30px rgba(13, 110, 253, 0.2);
+}
+
+/* 自定义抽签加载动画 */
+.draw-spinner {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid transparent;
+  border-top-color: #0d6efd;
+  border-bottom-color: #6610f2;
+  animation: spin 1.2s linear infinite;
+  position: relative;
+}
+
+.draw-spinner::before,
+.draw-spinner::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  border: 4px solid transparent;
+}
+
+.draw-spinner::before {
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  border-top-color: #20c997;
+  border-bottom-color: #0dcaf0;
+  animation: spin 1.8s linear infinite reverse;
+}
+
+.draw-spinner::after {
+  top: 15px;
+  left: 15px;
+  right: 15px;
+  bottom: 15px;
+  border-top-color: #ffc107;
+  border-bottom-color: #dc3545;
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 动画名字效果 */
+.animation-name {
+  font-size: 2rem;
+  font-weight: bold;
+  background: linear-gradient(45deg, #0d6efd, #6610f2, #0dcaf0);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradient-move 2s linear infinite;
+  text-align: center;
+  min-height: 60px;
+  margin-top: 1.5rem;
+  text-shadow: 0 0 20px rgba(13, 110, 253, 0.3);
+}
+
+@keyframes gradient-move {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* 抽签结果项 */
+.result-item {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #d1e7dd, #b6effb);
+  border-radius: 30px;
+  border: none;
+  font-weight: bold;
+  color: #0f5132;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  box-shadow: 0 5px 15px rgba(25, 135, 84, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.result-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(25, 135, 84, 0.3);
+}
+
+.result-item::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  transform: rotate(45deg);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  70% { transform: scale(1.1) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* 空结果消息样式 */
+#noResultsMessage {
+  text-align: center;
+  padding: 2rem !important;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+#noResultsMessage i {
+  font-size: 3rem;
+  background: linear-gradient(135deg, #0dcaf0, #6610f2);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  opacity: 0.5;
+}
+
+/* 抽签历史记录样式 */
+.history-card {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(255, 193, 7, 0.15);
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.history-card:hover {
+  box-shadow: 0 15px 35px rgba(255, 193, 7, 0.2);
+  transform: translateY(-5px);
+}
+
+.history-card .card-header {
+  background: linear-gradient(45deg, #ffc107, #fd7e14);
+  color: #212529;
+  border: none;
+  padding: 1rem 1.5rem;
+}
+
+.history-card .table {
+  margin-bottom: 0;
+}
+
+.history-card .table th {
+  background-color: rgba(255, 193, 7, 0.05);
+  border-bottom: 2px solid rgba(255, 193, 7, 0.2);
+}
+
+.history-card tbody tr {
+  transition: all 0.3s ease;
+}
+
+.history-card tbody tr:hover {
+  background-color: rgba(255, 193, 7, 0.05);
+  transform: scale(1.01);
+}
+
+/* 抽中学生名单列样式 */
+.drawn-names-container {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+}
+
+.view-all-names {
+  padding: 0.1rem 0.4rem;
+  margin-left: 5px;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+/* 学生名单模态框样式 */
+#namesModal .modal-content {
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+#namesModal .modal-header {
+  background: linear-gradient(45deg, #0d6efd, #6610f2);
+  color: white;
+  border: none;
+  padding: 1rem 1.5rem;
+}
+
+#namesModal .btn-close {
+  color: white;
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+#namesModal .modal-body {
+  padding: 1.5rem;
+}
+
+#namesModal #modalNamesList {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+#namesModal #modalNamesList .result-item {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 欢迎横幅 */
+.welcome-banner {
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(102, 16, 242, 0.1) 100%);
+  border: none;
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(13, 110, 253, 0.15);
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  padding: 3rem 2rem !important;
+}
+
+.welcome-banner:hover {
+  box-shadow: 0 15px 40px rgba(13, 110, 253, 0.2);
+  transform: translateY(-5px);
+}
+
+.welcome-banner-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('/img/pattern-dots.svg');
+  background-size: 20px 20px;
+  opacity: 0.1;
+  z-index: 0;
+  animation: moveBg 60s linear infinite;
+}
+
+@keyframes moveBg {
+  0% { background-position: 0 0; }
+  100% { background-position: 1000px 1000px; }
+}
+
+.welcome-banner h1 {
+  font-weight: 800;
+  background: linear-gradient(45deg, #0d6efd, #6610f2);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.welcome-banner .lead {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+/* 按钮动效 */
+.btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: 50px;
+  font-weight: 500;
+  padding: 0.6rem 1.5rem;
+  z-index: 1;
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.3);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+  z-index: -1;
+}
+
+.btn:focus:not(:active)::after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+/* 新增：按钮点击效果 */
+.btn.clicked {
+  transform: scale(0.95);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮闪光效果 */
+.btn-primary, .btn-success {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before, .btn-success::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  animation: btnShine 3s infinite linear;
+}
+
+@keyframes btnShine {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+
+/* 表单控件动效 */
+.form-control {
+  transition: all 0.3s ease;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.form-control:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+  transform: translateY(-2px);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .draw-pool-wrapper {
+    flex-direction: column;
+  }
+  
+  .draw-pool-side:first-child {
+    border-right: none;
+    border-bottom: 2px solid rgba(13, 110, 253, 0.1);
+  }
+  
+  .welcome-banner {
+    padding: 2rem 1rem !important;
+  }
+  
+  .welcome-banner h1 {
+    font-size: 2rem;
+  }
+  
+  .welcome-banner .lead {
+    font-size: 1rem;
+  }
+  
+  .animation-name {
+    font-size: 1.5rem;
+  }
+}
+
+/* 测试模式的抽签结果样式 */
+.result-item.test-mode {
+  background: linear-gradient(135deg, #ced4da, #adb5bd);
+  border: 1px dashed #6c757d;
+  color: #212529;
+  position: relative;
+}
+
+.result-item.test-mode::after {
+  content: "测试";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #0dcaf0;
+  color: white;
+  font-size: 0.6rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+/* 测试模式提示样式 */
+.alert.border-glow {
+  border-radius: 10px;
+  animation: alertPulse 2s infinite alternate;
+  box-shadow: 0 0 15px rgba(13, 202, 240, 0.2);
+}
+
+@keyframes alertPulse {
+  0% { box-shadow: 0 0 15px rgba(13, 202, 240, 0.2); }
+  100% { box-shadow: 0 0 15px rgba(13, 202, 240, 0.6); }
+} 

@@ -1,0 +1,494 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h2 class="mb-0"><%= form.title %></h2>
+      <a href="/forms" class="btn btn-light">
+        <i class="fas fa-arrow-left"></i> 返回
+      </a>
+    </div>
+    
+    <% if (form.description) { %>
+      <div class="card-body bg-light">
+        <p class="mb-0"><%= form.description %></p>
+      </div>
+    <% } %>
+    
+    <div class="card-body">
+      <form id="form-submit">
+        <!-- 用户信息部分 -->
+        <div class="card mb-4">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">个人信息 (选填)</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="qq_number" class="form-label">QQ号</label>
+                <input type="text" class="form-control" id="qq_number" name="qq_number">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="nickname" class="form-label">昵称</label>
+                <input type="text" class="form-control" id="nickname" name="nickname">
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="class_number" class="form-label">班级</label>
+                <input type="text" class="form-control" id="class_number" name="class_number">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="student_id" class="form-label">学号</label>
+                <input type="text" class="form-control" id="student_id" name="student_id">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 问题部分 -->
+        <div id="questions-container">
+          <% form.questions.forEach((question, index) => { %>
+            <div class="mb-4 question-item" data-id="<%= question.id %>">
+              <label class="form-label fw-bold">
+                <%= index + 1 %>. <%= question.text %>
+                <% if (question.required) { %>
+                  <span class="text-danger">*</span>
+                <% } %>
+              </label>
+              
+              <% if (question.type === 'text') { %>
+                <input type="text" class="form-control" 
+                  name="question_<%= question.id %>" 
+                  <% if (question.required) { %>required<% } %>>
+                
+              <% } else if (question.type === 'textarea') { %>
+                <textarea class="form-control" 
+                  name="question_<%= question.id %>" 
+                  rows="3" 
+                  <% if (question.required) { %>required<% } %>></textarea>
+                
+              <% } else if (question.type === 'radio') { %>
+                <div>
+                  <% question.options.forEach((option, optionIndex) => { %>
+                    <div class="form-check">
+                      <input class="form-check-input" 
+                        type="radio" 
+                        name="question_<%= question.id %>" 
+                        id="option_<%= question.id %>_<%= optionIndex %>" 
+                        value="<%= option %>"
+                        <% if (question.required) { %>required<% } %>>
+                      <label class="form-check-label" for="option_<%= question.id %>_<%= optionIndex %>">
+                        <%= option %>
+                      </label>
+                    </div>
+                  <% }); %>
+                </div>
+                
+              <% } else if (question.type === 'checkbox') { %>
+                <div>
+                  <% question.options.forEach((option, optionIndex) => { %>
+                    <div class="form-check">
+                      <input class="form-check-input checkbox-option" 
+                        type="checkbox" 
+                        name="question_<%= question.id %>" 
+                        id="option_<%= question.id %>_<%= optionIndex %>" 
+                        value="<%= option %>"
+                        data-question-id="<%= question.id %>"
+                        data-required="<%= question.required ? 'true' : 'false' %>">
+                      <label class="form-check-label" for="option_<%= question.id %>_<%= optionIndex %>">
+                        <%= option %>
+                      </label>
+                    </div>
+                  <% }); %>
+                </div>
+                
+              <% } else if (question.type === 'dropdown') { %>
+                <select class="form-select" 
+                  name="question_<%= question.id %>" 
+                  <% if (question.required) { %>required<% } %>>
+                  <option value="" selected disabled>请选择</option>
+                  <% question.options.forEach(option => { %>
+                    <option value="<%= option %>"><%= option %></option>
+                  <% }); %>
+                </select>
+                
+              <% } else if (question.type === 'file') { %>
+                <div class="file-upload-container">
+                  <input type="file" class="form-control file-input" 
+                    name="question_<%= question.id %>" 
+                    accept="<%= question.file_type || 'image/*' %>"
+                    <% if (question.required) { %>required<% } %>>
+                  <div class="file-preview mt-2 d-none">
+                    <div class="card">
+                      <div class="card-body">
+                        <div class="d-flex align-items-center">
+                          <i class="fas fa-file me-2"></i>
+                          <span class="file-name"></span>
+                          <button type="button" class="btn btn-sm btn-outline-danger ms-auto clear-file-btn">
+                            <i class="fas fa-times"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+              <% } else if (question.type === 'signature') { %>
+                <div class="signature-container">
+                  <div class="signature-pad-container border rounded mb-2">
+                    <canvas class="signature-pad" width="600" height="200"></canvas>
+                  </div>
+                  <input type="hidden" class="signature-data" 
+                    name="question_<%= question.id %>" 
+                    <% if (question.required) { %>required<% } %>>
+                  <div class="d-flex">
+                    <button type="button" class="btn btn-sm btn-outline-secondary clear-signature-btn">
+                      <i class="fas fa-eraser"></i> 清除签名
+                    </button>
+                    <div class="signature-status ms-3 text-muted">
+                      <% if (question.required) { %>
+                        <small><i class="fas fa-exclamation-circle"></i> 请在上方区域签名</small>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+                
+              <% } else if (question.type === 'rating') { %>
+                <div class="rating-container">
+                  <div class="rating-stars" data-max="<%= question.max_rating || 5 %>">
+                    <% for (let i = 1; i <= (question.max_rating || 5); i++) { %>
+                      <span class="star" data-value="<%= i %>">
+                        <i class="far fa-star"></i>
+                      </span>
+                    <% } %>
+                  </div>
+                  <input type="hidden" class="rating-value" 
+                    name="question_<%= question.id %>" 
+                    <% if (question.required) { %>required<% } %>>
+                  <div class="rating-text mt-1">
+                    <small class="text-muted">点击星星进行评分</small>
+                  </div>
+                </div>
+                
+              <% } else if (question.type === 'date') { %>
+                <input type="date" class="form-control" 
+                  name="question_<%= question.id %>" 
+                  <% if (question.required) { %>required<% } %>>
+                
+              <% } else if (question.type === 'number') { %>
+                <input type="number" class="form-control" 
+                  name="question_<%= question.id %>" 
+                  <% if (question.min !== undefined) { %>min="<%= question.min %>"<% } %>
+                  <% if (question.max !== undefined) { %>max="<%= question.max %>"<% } %>
+                  <% if (question.required) { %>required<% } %>>
+                <% if (question.min !== undefined && question.max !== undefined) { %>
+                  <small class="form-text text-muted">允许的数值范围: <%= question.min %> 到 <%= question.max %></small>
+                <% } %>
+              <% } %>
+            </div>
+          <% }); %>
+        </div>
+        
+        <% if (hasSubmittedBefore) { %>
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 您已经提交过此表单。如果继续提交，将会创建新的回答。
+          </div>
+        <% } %>
+        
+        <div class="d-flex justify-content-between mt-4">
+          <a href="/forms" class="btn btn-secondary">返回</a>
+          <button type="submit" class="btn btn-primary">提交</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 引入签名板库 -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 从URL获取QQ信息并自动填充
+    const urlParams = new URLSearchParams(window.location.search);
+    const qqNumber = urlParams.get('qq');
+    const nickname = urlParams.get('nickname');
+    
+    if (qqNumber) {
+      document.getElementById('qq_number').value = qqNumber;
+    }
+    
+    if (nickname) {
+      document.getElementById('nickname').value = nickname;
+    }
+    
+    // 处理多选题的必填验证
+    document.querySelectorAll('.checkbox-option').forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        const questionId = checkbox.dataset.questionId;
+        const required = checkbox.dataset.required === 'true';
+        
+        if (required) {
+          // 检查同一问题中是否有任何复选框被选中
+          const checkboxes = document.querySelectorAll(`.checkbox-option[data-question-id="${questionId}"]`);
+          const isAnyChecked = Array.from(checkboxes).some(cb => cb.checked);
+          
+          // 设置所有复选框的required属性
+          checkboxes.forEach(cb => {
+            cb.required = !isAnyChecked;
+          });
+        }
+      });
+    });
+    
+    // 初始化签名板
+    const signaturePads = {};
+    document.querySelectorAll('.signature-pad').forEach(canvas => {
+      const container = canvas.closest('.signature-container');
+      const hiddenInput = container.querySelector('.signature-input');
+      const clearButton = container.querySelector('.clear-signature-btn');
+      const statusText = container.querySelector('.signature-status');
+      
+      const signaturePad = new SignaturePad(canvas, {
+        backgroundColor: 'rgba(255, 255, 255, 0)',
+        penColor: 'black'
+      });
+      
+      const questionId = container.closest('.question-item').dataset.id;
+      signaturePads[questionId] = signaturePad;
+      
+      // 签名更新事件
+      signaturePad.addEventListener('endStroke', () => {
+        const dataUrl = signaturePad.toDataURL();
+        const hiddenInput = container.querySelector('.signature-data');
+        hiddenInput.value = dataUrl;
+        
+        // 更新状态
+        if (statusText) {
+          statusText.innerHTML = '<small class="text-success"><i class="fas fa-check-circle"></i> 已签名</small>';
+        }
+      });
+      
+      // 清除签名按钮
+      if (clearButton) {
+        clearButton.addEventListener('click', () => {
+          signaturePad.clear();
+          const hiddenInput = container.querySelector('.signature-data');
+          hiddenInput.value = '';
+          
+          // 更新状态
+          if (statusText) {
+            if (hiddenInput.required) {
+              statusText.innerHTML = '<small class="text-muted"><i class="fas fa-exclamation-circle"></i> 请在上方区域签名</small>';
+            } else {
+              statusText.innerHTML = '';
+            }
+          }
+        });
+      }
+    });
+    
+    // 处理评分组件
+    document.querySelectorAll('.rating-container').forEach(container => {
+      const stars = container.querySelectorAll('.star');
+      const hiddenInput = container.querySelector('.rating-value');
+      const ratingText = container.querySelector('.rating-text');
+      
+      stars.forEach(star => {
+        star.addEventListener('click', () => {
+          const value = parseInt(star.dataset.value);
+          hiddenInput.value = value;
+          
+          // 更新星星显示
+          stars.forEach(s => {
+            const starValue = parseInt(s.dataset.value);
+            if (starValue <= value) {
+              s.querySelector('i').className = 'fas fa-star text-warning';
+            } else {
+              s.querySelector('i').className = 'far fa-star';
+            }
+          });
+          
+          // 更新文本
+          if (ratingText) {
+            ratingText.innerHTML = `<small class="text-success">您的评分: ${value} 星</small>`;
+          }
+        });
+        
+        // 鼠标悬停效果
+        star.addEventListener('mouseenter', () => {
+          const hoverValue = parseInt(star.dataset.value);
+          
+          stars.forEach(s => {
+            const starValue = parseInt(s.dataset.value);
+            if (starValue <= hoverValue) {
+              s.querySelector('i').className = 'fas fa-star text-warning';
+            } else {
+              s.querySelector('i').className = 'far fa-star';
+            }
+          });
+        });
+        
+        container.addEventListener('mouseleave', () => {
+          const selectedValue = hiddenInput.value ? parseInt(hiddenInput.value) : 0;
+          
+          stars.forEach(s => {
+            const starValue = parseInt(s.dataset.value);
+            if (starValue <= selectedValue) {
+              s.querySelector('i').className = 'fas fa-star text-warning';
+            } else {
+              s.querySelector('i').className = 'far fa-star';
+            }
+          });
+        });
+      });
+    });
+    
+    // 处理文件上传
+    document.querySelectorAll('.file-input').forEach(input => {
+      const container = input.closest('.file-upload-container');
+      const preview = container.querySelector('.file-preview');
+      const fileName = preview.querySelector('.file-name');
+      const clearButton = preview.querySelector('.clear-file-btn');
+      
+      input.addEventListener('change', () => {
+        if (input.files && input.files[0]) {
+          fileName.textContent = input.files[0].name;
+          preview.classList.remove('d-none');
+        } else {
+          preview.classList.add('d-none');
+        }
+      });
+      
+      if (clearButton) {
+        clearButton.addEventListener('click', () => {
+          input.value = '';
+          preview.classList.add('d-none');
+        });
+      }
+    });
+    
+    // 表单提交
+    document.getElementById('form-submit').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // 收集问题答案
+      const answers = [];
+      const formId = '<%= form.id %>';
+      
+      <% form.questions.forEach(question => { %>
+        const questionId = '<%= question.id %>';
+        const questionType = '<%= question.type %>';
+        let answer;
+        
+        if (questionType === 'checkbox') {
+          const checkboxes = document.querySelectorAll(`input[name="question_${questionId}"]:checked`);
+          answer = Array.from(checkboxes).map(cb => cb.value);
+        } else if (questionType === 'file') {
+          const fileInput = document.querySelector(`input[name="question_${questionId}"]`);
+          if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            // 将文件转换为 base64
+            const reader = new FileReader();
+            
+            // 使用 Promise 封装异步操作
+            answer = await new Promise((resolve) => {
+              reader.onloadend = () => resolve({
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                data: reader.result
+              });
+              reader.readAsDataURL(file);
+            });
+          } else {
+            answer = null;
+          }
+        } else {
+          const element = document.querySelector(`[name="question_${questionId}"]`);
+          answer = element ? element.value : null;
+        }
+        
+        answers.push({
+          id: questionId,
+          answer: answer
+        });
+      <% }); %>
+      
+      // 收集用户信息
+      const userInfo = {
+        qq_number: document.getElementById('qq_number').value.trim(),
+        nickname: document.getElementById('nickname').value.trim(),
+        class_number: document.getElementById('class_number').value.trim(),
+        student_id: document.getElementById('student_id').value.trim()
+      };
+      
+      // 显示加载状态
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+      
+      try {
+        const response = await fetch(`/api/forms/${formId}/submit`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            answers,
+            user_info: userInfo
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          const responseId = data.response_id;
+          window.location.href = `/forms/response/${responseId}?success=true`;
+        } else {
+          alert('提交失败: ' + data.message);
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('提交失败，请稍后再试');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    });
+  });
+</script>
+
+<style>
+  .signature-pad-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background-color: #fff;
+  }
+  
+  .signature-pad {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .rating-stars {
+    display: flex;
+    gap: 5px;
+    font-size: 24px;
+  }
+  
+  .rating-stars .star {
+    cursor: pointer;
+  }
+</style>
+
+<%- include('../partials/footer') %>

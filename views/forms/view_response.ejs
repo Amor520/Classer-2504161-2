@@ -1,0 +1,184 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h2 class="mb-0">表单回答详情</h2>
+      <div>
+        <% if (can_edit) { %>
+          <a href="/forms/response/<%= response.id %>/edit" class="btn btn-light me-2">
+            <i class="fas fa-edit"></i> 编辑
+          </a>
+        <% } %>
+        <a href="/forms/submissions" class="btn btn-light">
+          <i class="fas fa-arrow-left"></i> 返回
+        </a>
+      </div>
+    </div>
+    
+    <div class="card-body">
+      <div class="mb-4">
+        <h4 class="mb-3">
+          <a href="/forms/view/<%= form.id %>" class="text-decoration-none">
+            <%= form.title %>
+          </a>
+        </h4>
+        
+        <div class="mb-3 text-muted">
+          <small>
+            <i class="fas fa-calendar-alt"></i> 提交时间: <%= new Date(response.created_at).toLocaleString('zh-CN') %>
+          </small>
+        </div>
+        
+        <% if (form.description) { %>
+          <div class="bg-light p-3 rounded mb-4">
+            <%= form.description %>
+          </div>
+        <% } %>
+      </div>
+      
+      <% if (userInfo) { %>
+        <div class="card mb-4">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">个人信息</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <% if (userInfo.qq_number) { %>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">QQ号</label>
+                  <p class="form-control-plaintext"><%= userInfo.qq_number %></p>
+                </div>
+              <% } %>
+              
+              <% if (userInfo.nickname) { %>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">昵称</label>
+                  <p class="form-control-plaintext"><%= userInfo.nickname %></p>
+                </div>
+              <% } %>
+            </div>
+            
+            <div class="row">
+              <% if (userInfo.class_number) { %>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">班级</label>
+                  <p class="form-control-plaintext"><%= userInfo.class_number %></p>
+                </div>
+              <% } %>
+              
+              <% if (userInfo.student_id) { %>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">学号</label>
+                  <p class="form-control-plaintext"><%= userInfo.student_id %></p>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% } %>
+      
+      <div class="mb-4">
+        <h5 class="mb-3">回答内容</h5>
+        
+        <div class="list-group">
+          <% form.questions.forEach((question, index) => { %>
+            <div class="list-group-item list-group-item-action flex-column align-items-start">
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-2"><%= index + 1 %>. <%= question.text %></h6>
+                <small class="text-muted">
+                  <%= question.type === 'text' ? '单行文本' : 
+                     question.type === 'textarea' ? '多行文本' : 
+                     question.type === 'radio' ? '单选题' : 
+                     question.type === 'checkbox' ? '多选题' : 
+                     question.type === 'dropdown' ? '下拉选择' : 
+                     question.type === 'file' ? '文件上传' :
+                     question.type === 'signature' ? '签名' :
+                     question.type === 'rating' ? '评分' :
+                     question.type === 'date' ? '日期' : '未知类型' 
+                  %>
+                </small>
+              </div>
+              
+              <% 
+                // 获取这个问题的回答
+                const answer = response.answers.find(a => a.id === question.id);
+                const answerValue = answer ? answer.answer : null;
+              %>
+              
+              <% if (answerValue === null || answerValue === '') { %>
+                <p class="mb-1 text-muted">未作答</p>
+              <% } else if (question.type === 'checkbox' && Array.isArray(answerValue)) { %>
+                <p class="mb-1">
+                  <% answerValue.forEach((val, i) => { %>
+                    <span class="badge bg-primary me-1"><%= val %></span>
+                  <% }); %>
+                </p>
+              <% } else if (question.type === 'signature' && answerValue) { %>
+                <div class="mb-1">
+                  <img src="<%= answerValue %>" alt="签名" class="img-fluid" style="max-height: 150px; border: 1px solid #ddd;">
+                </div>
+              <% } else if (question.type === 'file' && answerValue && answerValue.data) { %>
+                <div class="mb-1">
+                  <% if (answerValue.type && answerValue.type.startsWith('image/')) { %>
+                    <img src="<%= answerValue.data %>" alt="上传的图片" class="img-fluid" style="max-height: 200px; border: 1px solid #ddd;">
+                  <% } else { %>
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-file me-2"></i>
+                      <span><%= answerValue.name %></span>
+                      <span class="ms-2 text-muted">(<%= Math.round(answerValue.size / 1024) %> KB)</span>
+                    </div>
+                  <% } %>
+                </div>
+              <% } else if (question.type === 'rating' && answerValue) { %>
+                <div class="mb-1">
+                  <% for (let i = 1; i <= (question.max_rating || 5); i++) { %>
+                    <i class="<%= i <= answerValue ? 'fas' : 'far' %> fa-star <%= i <= answerValue ? 'text-warning' : '' %>"></i>
+                  <% } %>
+                  <span class="ms-2"><%= answerValue %> / <%= question.max_rating || 5 %></span>
+                </div>
+              <% } else { %>
+                <p class="mb-1"><%= answerValue %></p>
+              <% } %>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+      
+      <div class="d-flex justify-content-between mt-4">
+        <a href="/forms/submissions" class="btn btn-secondary">返回</a>
+        <a href="/forms/view/<%= form.id %>" class="btn btn-primary">重新填写</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% if (locals.success) { %>
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div class="toast show bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header bg-success text-white">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong class="me-auto">成功</strong>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        表单提交成功！
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // 3秒后自动关闭提示
+    setTimeout(() => {
+      const toast = document.querySelector('.toast');
+      const bsToast = bootstrap.Toast.getInstance(toast);
+      if (bsToast) {
+        bsToast.hide();
+      } else {
+        toast.classList.remove('show');
+      }
+    }, 3000);
+  </script>
+<% } %>
+
+<%- include('../partials/footer') %> 

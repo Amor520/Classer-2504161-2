@@ -6,7 +6,7 @@ const session = require('express-session');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 
 // 中间件设置
 app.use(cors());
@@ -35,7 +35,10 @@ app.use((req, res, next) => {
 
 // 路由
 const indexRoutes = require('./routes/index');
+const drawRoutes = require('./routes/drawRoutes'); // 抽签系统路由
+
 app.use('/', indexRoutes);
+app.use('/draw', drawRoutes); // 使用抽签系统路由
 
 // 404错误处理
 app.use((req, res) => {

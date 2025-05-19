@@ -1,0 +1,152 @@
+<%- include('../partials/header', {title: '管理员仪表板'}) %>
+
+<div class="container mt-5 pt-4">
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h2 class="card-title"><i class="bi bi-speedometer2"></i> 管理员仪表板</h2>
+          <p class="card-text">
+            欢迎回来，<strong><%= admin.username %></strong>! 
+            <span class="badge <%= admin.role === 2 ? 'bg-danger' : 'bg-primary' %>">
+              <%= admin.role === 2 ? '超级管理员' : '普通管理员' %>
+            </span>
+          </p>
+          <hr>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="/forms" class="btn btn-primary">
+              <i class="bi bi-clipboard-data"></i> 收集表系统
+            </a>
+            <a href="/deyufen" class="btn btn-success">
+              <i class="bi bi-trophy"></i> 德育分系统
+            </a>
+            <% if (admin.role === 2) { %>
+            <a href="/admin/manage" class="btn btn-danger">
+              <i class="bi bi-people"></i> 管理员管理
+            </a>
+            <% } %>
+            <a href="/admin/logout" class="btn btn-outline-secondary">
+              <i class="bi bi-box-arrow-right"></i> 退出登录
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% if (admin.role === 2) { %>
+  <!-- 超级管理员统计卡片 -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title"><i class="bi bi-file-earmark-text"></i> 总表单数</h5>
+          <p class="display-4"><%= forms ? forms.length : 0 %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title"><i class="bi bi-activity"></i> 活动总数</h5>
+          <p class="display-4">-</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title"><i class="bi bi-people"></i> 管理员人数</h5>
+          <p class="display-4">-</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- 最近表单列表 -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0"><i class="bi bi-list-ul"></i> 最近表单</h5>
+        </div>
+        <div class="card-body">
+          <% if (forms && forms.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>标题</th>
+                    <th>创建时间</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% 
+                  const recentForms = forms.slice(0, 5); 
+                  recentForms.forEach(form => { 
+                  %>
+                    <tr>
+                      <td><%= form.title %></td>
+                      <td><%= new Date(form.created_at).toLocaleDateString('zh-CN') %></td>
+                      <td>
+                        <span class="badge <%= form.is_active ? 'bg-success' : 'bg-secondary' %>">
+                          <%= form.is_active ? '活跃' : '已关闭' %>
+                        </span>
+                      </td>
+                      <td>
+                        <a href="/forms/view/<%= form.id %>" class="btn btn-sm btn-outline-primary">
+                          <i class="bi bi-eye"></i> 查看
+                        </a>
+                        <a href="/forms/results/<%= form.id %>" class="btn btn-sm btn-outline-success">
+                          <i class="bi bi-bar-chart"></i> 结果
+                        </a>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+            <% if (forms.length > 5) { %>
+              <div class="text-center mt-3">
+                <a href="/forms/all" class="btn btn-outline-primary">查看所有表单</a>
+              </div>
+            <% } %>
+          <% } else { %>
+            <div class="alert alert-info mb-0">
+              <i class="bi bi-info-circle"></i> 暂无表单数据
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 快速操作区域 -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0"><i class="bi bi-lightning"></i> 快速操作</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-2">
+            <a href="/forms/create" class="btn btn-outline-primary">
+              <i class="bi bi-plus-circle"></i> 创建新表单
+            </a>
+            <a href="/activity/add" class="btn btn-outline-success">
+              <i class="bi bi-plus-circle"></i> 添加新活动
+            </a>
+            <a href="/refresh-scores" class="btn btn-outline-info">
+              <i class="bi bi-arrow-repeat"></i> 刷新德育分
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

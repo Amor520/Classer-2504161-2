@@ -1,0 +1,224 @@
+/* 技术主题风格增强 */
+
+/* 渐变按钮 */
+.btn-primary {
+  background: linear-gradient(45deg, #0d6efd, #0a58ca);
+  border: none;
+}
+
+.btn-success {
+  background: linear-gradient(45deg, #198754, #157347);
+  border: none;
+}
+
+.btn-warning {
+  background: linear-gradient(45deg, #ffc107, #ffca2c);
+  border: none;
+}
+
+.btn-danger {
+  background: linear-gradient(45deg, #dc3545, #bb2d3b);
+  border: none;
+}
+
+.btn-info {
+  background: linear-gradient(45deg, #0dcaf0, #31d2f2);
+  border: none;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-warning:hover,
+.btn-outline-danger:hover,
+.btn-outline-info:hover {
+  background: linear-gradient(45deg, var(--bs-btn-hover-bg), var(--bs-btn-hover-border-color));
+  border: none;
+}
+
+/* 霓虹文字效果 */
+.text-neon {
+  text-shadow: 
+    0 0 5px rgba(255, 255, 255, 0.8),
+    0 0 10px rgba(255, 255, 255, 0.8),
+    0 0 15px rgba(255, 255, 255, 0.8),
+    0 0 20px var(--neon-color, rgba(13, 110, 253, 0.8)),
+    0 0 35px var(--neon-color, rgba(13, 110, 253, 0.8)),
+    0 0 40px var(--neon-color, rgba(13, 110, 253, 0.8));
+}
+
+.text-neon-primary {
+  --neon-color: rgba(13, 110, 253, 0.8);
+}
+
+.text-neon-success {
+  --neon-color: rgba(25, 135, 84, 0.8);
+}
+
+.text-neon-info {
+  --neon-color: rgba(13, 202, 240, 0.8);
+}
+
+.text-neon-warning {
+  --neon-color: rgba(255, 193, 7, 0.8);
+}
+
+.text-neon-danger {
+  --neon-color: rgba(220, 53, 69, 0.8);
+}
+
+/* 渐变文字 */
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-size: 200% auto;
+  animation: gradient-animation 3s linear infinite;
+}
+
+.text-gradient-primary {
+  background-image: linear-gradient(45deg, #0d6efd, #6610f2, #0d6efd);
+}
+
+.text-gradient-success {
+  background-image: linear-gradient(45deg, #198754, #20c997, #198754);
+}
+
+.text-gradient-info {
+  background-image: linear-gradient(45deg, #0dcaf0, #6610f2, #0dcaf0);
+}
+
+@keyframes gradient-animation {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* 卡片悬停增强效果 */
+.card-hover-effect {
+  transition: transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 123, 255, 0.2);
+}
+
+/* 带有立体感的按钮 */
+.btn-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: all 0.3s ease;
+}
+
+.btn-3d::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
+  border-radius: inherit;
+  transform: translateZ(-5px);
+  transition: all 0.3s ease;
+}
+
+.btn-3d:active {
+  transform: translateY(5px);
+}
+
+.btn-3d:active::before {
+  box-shadow: none;
+  transform: translateZ(-5px) translateY(-5px);
+}
+
+/* 动画效果 */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* 玻璃态效果 */
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* 闪光边框 */
+.border-glow {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.border-glow::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #0d6efd, #6610f2, #d63384, #fd7e14, #ffc107, #20c997, #0dcaf0, #0d6efd);
+  background-size: 400% 400%;
+  animation: glowing 3s linear infinite;
+  z-index: -1;
+  border-radius: 12px;
+}
+
+@keyframes glowing {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* 按钮波纹效果 */
+.btn-ripple {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple 0.6s linear;
+  pointer-events: none;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* 交互卡片边框 */
+.card-interactive-border {
+  position: relative;
+}
+
+.card-interactive-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  background: linear-gradient(45deg, #0d6efd, #6610f2, #0dcaf0) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-interactive-border:hover::after {
+  opacity: 1;
+} 

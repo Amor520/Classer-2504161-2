@@ -1,0 +1,93 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h2 class="mb-0">所有表单</h2>
+      <a href="/forms/create" class="btn btn-light">
+        <i class="fas fa-plus"></i> 创建新表单
+      </a>
+    </div>
+    <div class="card-body">
+      <% if (forms && forms.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>表单标题</th>
+                <th>创建者</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% forms.forEach(form => { %>
+                <tr>
+                  <td><%= form.title %></td>
+                  <td><%= form.creator_name || '未知' %></td>
+                  <td><%= new Date(form.created_at).toLocaleString('zh-CN') %></td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <a href="/forms/view/<%= form.id %>" class="btn btn-outline-primary">
+                        <i class="fas fa-eye"></i> 查看
+                      </a>
+                      <% if (locals.admin) { %>
+                        <a href="/forms/results/<%= form.id %>" class="btn btn-outline-info">
+                          <i class="fas fa-chart-bar"></i> 结果
+                        </a>
+                        <button type="button" class="btn btn-outline-success" 
+                          onclick="duplicateForm('<%= form.id %>', '<%= form.title %>')">
+                          <i class="fas fa-copy"></i> 复制
+                        </button>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center py-5">
+          <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+          <h3>还没有表单</h3>
+          <p class="text-muted">点击右上角的按钮创建新表单</p>
+          <a href="/forms/create" class="btn btn-primary mt-3">
+            <i class="fas fa-plus"></i> 创建新表单
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 复制表单功能
+  async function duplicateForm(formId, originalTitle) {
+    const newTitle = prompt('请输入新表单的标题:', `${originalTitle} - 副本`);
+    if (!newTitle) return;
+    
+    try {
+      const response = await fetch(`/api/forms/${formId}/duplicate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title: newTitle })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        window.location.href = data.redirect_url;
+      } else {
+        alert('复制表单失败: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('复制表单失败，请稍后再试');
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

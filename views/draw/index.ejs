@@ -1,0 +1,701 @@
+<%- include('../partials/header') %>
+
+<!-- 添加抽签池专用样式 -->
+<link rel="stylesheet" href="/css/draw-style.css">
+
+<!-- 内容区域容器 -->
+<div class="container main-container mt-4">
+  <!-- 欢迎区域 -->
+  <div class="jumbotron mb-4 p-4 p-md-5 text-center position-relative overflow-hidden welcome-banner">
+    <div class="position-absolute top-0 start-0 w-100 h-100 welcome-banner-bg"></div>
+    <div class="position-relative">
+      <h1 class="display-5">抽签系统</h1>
+      <p class="lead">计算机科学与技术专业 2308班 2023级</p>
+      
+      <!-- 登录状态和操作按钮 -->
+      <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
+        <% if (typeof session !== 'undefined' && session.admin) { %>
+          <!-- 管理员操作按钮 -->
+          <div class="d-flex gap-2 flex-wrap justify-content-center">
+            <button id="initPoolBtn" class="btn btn-primary px-4">
+              <i class="bi bi-arrow-repeat"></i> 初始化抽签池
+            </button>
+            <button id="resetPoolBtn" class="btn btn-outline-warning px-4">
+              <i class="bi bi-arrow-clockwise"></i> 重置抽签池
+            </button>
+          </div>
+          
+          <!-- 管理员状态提示 -->
+          <div class="d-flex align-items-center ms-md-3">
+            <span class="badge rounded-pill bg-success me-2">
+              <i class="bi bi-person-check-fill"></i> 管理员: <%= session.admin.username %>
+            </span>
+            <a href="/admin/logout" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-box-arrow-right"></i> 退出
+            </a>
+          </div>
+        <% } else { %>
+          <!-- 游客模式提示 -->
+          <div class="alert alert-info border-glow mb-0">
+            <i class="bi bi-info-circle-fill me-2"></i> 您当前处于游客模式，抽签结果不会保存
+            <a href="/admin/login" class="btn btn-sm btn-outline-primary ms-3">
+              <i class="bi bi-box-arrow-in-right"></i> 管理员登录
+            </a>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- 抽签池和抽签功能 -->
+  <div class="row mb-4">
+    <!-- 抽签池区域 -->
+    <div class="col-12 mb-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header <%= typeof session !== 'undefined' && session.admin ? 'bg-primary' : 'bg-info' %> text-white d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-people"></i> 抽签池
+            <% if (typeof session !== 'undefined' && session.admin) { %>
+              <span class="badge bg-light text-primary ms-2">管理员模式</span>
+            <% } else { %>
+              <span class="badge bg-light text-info ms-2">测试模式</span>
+            <% } %>
+          </h5>
+          <div class="d-flex align-items-center">
+            <span id="availableCount" class="badge bg-light <%= typeof session !== 'undefined' && session.admin ? 'text-primary' : 'text-info' %>">
+              可抽: <%= availableStudents ? availableStudents.length : 0 %>
+            </span>
+          </div>
+        </div>
+        <div class="card-body pb-2">
+          <div id="drawPoolContainer" class="draw-pool-wrapper">
+            <!-- 左侧未抽区域 -->
+            <div id="availablePool" class="draw-pool-side p-2">
+              <h6 class="<%= typeof session !== 'undefined' && session.admin ? 'text-primary' : 'text-info' %>">未抽学生</h6>
+              <div class="draw-pool-items">
+                <% if (availableStudents && availableStudents.length > 0) { %>
+                  <% availableStudents.forEach(student => { %>
+                    <div class="draw-pool-item" data-id="<%= student.id %>">
+                      <%= student.name %>
+                    </div>
+                  <% }); %>
+                <% } else { %>
+                  <div class="text-center p-4 text-muted">
+                    <i class="bi bi-info-circle"></i> 抽签池为空，请初始化
+                  </div>
+                <% } %>
+              </div>
+            </div>
+            
+            <!-- 右侧已抽区域 -->
+            <div id="drawnPool" class="draw-pool-side p-2">
+              <h6 class="text-success">已抽学生</h6>
+              <div class="draw-pool-items">
+                <% if (drawnStudents && drawnStudents.length > 0) { %>
+                  <% drawnStudents.forEach(student => { %>
+                    <div class="draw-pool-item drawn" data-id="<%= student.id %>">
+                      <%= student.name %>
+                    </div>
+                  <% }); %>
+                <% } else { %>
+                  <div class="text-center p-4 text-muted">
+                    <i class="bi bi-info-circle"></i> 暂无已抽学生
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 抽签设置和结果 -->
+    <div class="col-md-6 mb-4">
+      <div class="card h-100 settings-card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-gear"></i> 抽签设置
+            <% if (typeof session === 'undefined' || !session.admin) { %>
+              <span class="badge rounded-pill bg-info fs-6 ms-2">测试模式</span>
+            <% } else { %>
+              <span class="badge rounded-pill bg-success fs-6 ms-2">正式模式</span>
+            <% } %>
+          </h5>
+        </div>
+        <div class="card-body">
+          <form id="drawForm" class="needs-validation" novalidate>
+            <div class="mb-3">
+              <label for="activityName" class="form-label">活动名称</label>
+              <input type="text" class="form-control" id="activityName" placeholder="请输入活动名称" required>
+              <div class="invalid-feedback">请输入活动名称</div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="drawCount" class="form-label">抽签数量</label>
+              <input type="number" class="form-control" id="drawCount" min="1" value="1" required>
+              <div class="invalid-feedback">请输入有效的抽签数量</div>
+            </div>
+            
+            <input type="hidden" id="isAdmin" value="<%= typeof session !== 'undefined' && session.admin ? 'true' : 'false' %>">
+            
+            <div class="d-grid gap-2">
+              <button type="submit" id="drawButton" class="btn <%= typeof session !== 'undefined' && session.admin ? 'btn-success' : 'btn-info' %> btn-lg">
+                <i class="bi bi-shuffle"></i> 
+                <% if (typeof session !== 'undefined' && session.admin) { %>
+                  开始抽签
+                <% } else { %>
+                  测试抽签
+                <% } %>
+              </button>
+            </div>
+            
+            <% if (typeof session === 'undefined' || !session.admin) { %>
+              <div class="alert alert-info mt-3 mb-0">
+                <small><i class="bi bi-info-circle-fill"></i> 测试模式下的抽签不会保存结果或改变抽签池状态</small>
+              </div>
+            <% } else { %>
+              <div class="alert alert-success mt-3 mb-0">
+                <small><i class="bi bi-check-circle-fill"></i> 您已登录为管理员，抽签结果将正常保存</small>
+              </div>
+            <% } %>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+      <div class="card h-100 results-card">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><i class="bi bi-check-circle"></i> 抽签结果</h5>
+        </div>
+        <div class="card-body position-relative">
+          <div id="drawResultsContainer">
+            <div id="noResultsMessage" class="text-center p-4">
+              <i class="bi bi-info-circle"></i>
+              <p class="text-muted mt-3">请设置参数并开始抽签</p>
+            </div>
+            
+            <div id="drawResults" class="d-none">
+              <h6 id="resultTitle" class="text-center mb-3"></h6>
+              <div id="resultItems" class="d-flex flex-wrap gap-2 justify-content-center"></div>
+            </div>
+          </div>
+          
+          <!-- 抽签动画层 -->
+          <div id="drawAnimation" class="draw-animation d-none">
+            <div class="draw-spinner"></div>
+            <div id="animationName" class="animation-name"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 抽签历史记录 -->
+  <div class="row mt-2">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm history-card" id="history">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><i class="bi bi-clock-history"></i> 抽签历史</h5>
+        </div>
+        <div class="card-body py-4">
+          <% if (history && history.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>活动名称</th>
+                    <th>抽签数量</th>
+                    <th style="min-width: 200px;">抽中学生</th>
+                    <th>抽签时间</th>
+                    <% if (typeof session !== 'undefined' && session.admin) { %>
+                      <th>操作</th>
+                    <% } %>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% history.forEach(record => { %>
+                    <tr>
+                      <td><%= record.activity_name %></td>
+                      <td><%= record.draw_count %></td>
+                      <td>
+                        <div class="drawn-names-container" title="<%= record.drawn_names %>">
+                          <% const names = record.drawn_names.split(','); %>
+                          <% if (names.length > 5) { %>
+                            <%= names.slice(0, 5).join('、') %> 等<%= names.length %>人
+                            <button class="btn btn-sm btn-outline-info view-all-names ms-1" data-names="<%= record.drawn_names %>" data-activity="<%= record.activity_name %>">
+                              <i class="bi bi-eye"></i>
+                            </button>
+                          <% } else { %>
+                            <%= names.join('、') %>
+                          <% } %>
+                        </div>
+                      </td>
+                      <td><%= new Date(record.created_at).toLocaleString('zh-CN') %></td>
+                      <% if (typeof session !== 'undefined' && session.admin) { %>
+                        <td>
+                          <button class="btn btn-sm btn-outline-danger delete-record" data-id="<%= record.id %>">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </td>
+                      <% } %>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+            
+            <% if (history.length > 10) { %>
+              <div class="d-flex justify-content-center mt-3">
+                <nav aria-label="抽签历史分页">
+                  <ul class="pagination pagination-sm" id="historyPagination"></ul>
+                </nav>
+              </div>
+            <% } %>
+          <% } else { %>
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle"></i> 暂无抽签历史记录
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %> 
+
+<!-- 抽中学生名单模态框 -->
+<div class="modal fade" id="namesModal" tabindex="-1" aria-labelledby="namesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="namesModalLabel">抽中学生名单</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <h6 id="modalActivityName" class="text-center mb-3"></h6>
+        <div id="modalNamesList" class="d-flex flex-wrap gap-2 justify-content-center"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 元素引用
+    const initPoolBtn = document.getElementById('initPoolBtn');
+    const resetPoolBtn = document.getElementById('resetPoolBtn');
+    const drawForm = document.getElementById('drawForm');
+    const drawButton = document.getElementById('drawButton');
+    const activityNameInput = document.getElementById('activityName');
+    const drawCountInput = document.getElementById('drawCount');
+    const availablePool = document.getElementById('availablePool');
+    const drawnPool = document.getElementById('drawnPool');
+    const availableCount = document.getElementById('availableCount');
+    const drawAnimation = document.getElementById('drawAnimation');
+    const animationName = document.getElementById('animationName');
+    const noResultsMessage = document.getElementById('noResultsMessage');
+    const drawResults = document.getElementById('drawResults');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultItems = document.getElementById('resultItems');
+    
+    // 检查用户是否是管理员
+    const isAdmin = document.getElementById('isAdmin').value === 'true';
+    
+    // 初始化抽签池
+    if (initPoolBtn) {
+      initPoolBtn.addEventListener('click', function() {
+        if (!confirm('确定要初始化抽签池吗？这将清空当前抽签池并重新创建。')) {
+          return;
+        }
+        
+        // 添加点击效果
+        this.classList.add('clicked');
+        setTimeout(() => this.classList.remove('clicked'), 300);
+        
+        // 调用初始化API
+        fetch('/draw/api/init', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // 刷新页面
+            window.location.reload();
+          } else {
+            alert('初始化失败: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('初始化抽签池错误:', error);
+          alert('初始化抽签池出错，请查看控制台');
+        });
+      });
+    }
+    
+    // 重置抽签池
+    if (resetPoolBtn) {
+      resetPoolBtn.addEventListener('click', function() {
+        if (!confirm('确定要重置抽签池吗？这将使所有学生恢复可抽状态。')) {
+          return;
+        }
+        
+        // 添加点击效果
+        this.classList.add('clicked');
+        setTimeout(() => this.classList.remove('clicked'), 300);
+        
+        // 调用重置API
+        fetch('/draw/api/reset', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // 刷新页面
+            window.location.reload();
+          } else {
+            alert('重置失败: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('重置抽签池错误:', error);
+          alert('重置抽签池出错，请查看控制台');
+        });
+      });
+    }
+    
+    // 抽签表单提交
+    drawForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // 表单验证
+      if (!drawForm.checkValidity()) {
+        e.stopPropagation();
+        drawForm.classList.add('was-validated');
+        return;
+      }
+      
+      // 获取表单数据
+      const activityName = activityNameInput.value;
+      const count = parseInt(drawCountInput.value);
+      
+      // 显示抽签动画
+      startDrawAnimation();
+      
+      // 添加按钮加载状态
+      drawButton.disabled = true;
+      drawButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 抽签中...';
+      
+      // 准备API路径和请求参数
+      const apiPath = isAdmin ? '/draw/api/draw' : '/draw/api/test-draw';
+      
+      // 提交抽签请求
+      fetch(apiPath, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          activityName: activityName,
+          count: count
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // 显示抽签结果
+          setTimeout(() => {
+            stopDrawAnimation();
+            showDrawResults(data.drawnStudents, activityName, !isAdmin);
+            
+            // 仅在管理员模式下更新池状态
+            if (isAdmin) {
+              updatePools(data.drawnStudents, data.availableStudents);
+            } else {
+              // 测试模式提示
+              resultTitle.innerHTML = `${resultTitle.textContent} <span class="badge bg-info">测试模式</span>`;
+            }
+            
+            // 恢复按钮状态
+            drawButton.disabled = false;
+            drawButton.innerHTML = `<i class="bi bi-shuffle"></i> ${isAdmin ? '开始抽签' : '测试抽签'}`;
+          }, 2000);
+        } else {
+          stopDrawAnimation();
+          alert('抽签失败: ' + data.message);
+          
+          // 恢复按钮状态
+          drawButton.disabled = false;
+          drawButton.innerHTML = `<i class="bi bi-shuffle"></i> ${isAdmin ? '开始抽签' : '测试抽签'}`;
+        }
+      })
+      .catch(error => {
+        console.error('抽签错误:', error);
+        stopDrawAnimation();
+        alert('抽签出错，请查看控制台');
+        
+        // 恢复按钮状态
+        drawButton.disabled = false;
+        drawButton.innerHTML = `<i class="bi bi-shuffle"></i> ${isAdmin ? '开始抽签' : '测试抽签'}`;
+      });
+    });
+    
+    // 删除历史记录
+    const deleteButtons = document.querySelectorAll('.delete-record');
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const recordId = this.getAttribute('data-id');
+        if (!confirm('确定要删除此抽签记录吗？')) {
+          return;
+        }
+        
+        fetch(`/draw/api/delete-record/${recordId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // 移除该行
+            this.closest('tr').remove();
+            // 如果没有更多记录，显示空状态
+            if (document.querySelectorAll('tbody tr').length === 0) {
+              document.querySelector('.table-responsive').innerHTML = `
+                <div class="alert alert-info">
+                  <i class="bi bi-info-circle"></i> 暂无抽签历史记录
+                </div>
+              `;
+            }
+          } else {
+            alert('删除失败: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('删除记录错误:', error);
+          alert('删除记录出错，请查看控制台');
+        });
+      });
+    });
+    
+    // 开始抽签动画
+    function startDrawAnimation() {
+      // 清空之前的结果
+      resultItems.innerHTML = '';
+      
+      // 显示动画层
+      drawAnimation.classList.remove('d-none');
+      noResultsMessage.classList.add('d-none');
+      drawResults.classList.add('d-none');
+      
+      // 名字闪烁动画
+      const names = Array.from(document.querySelectorAll('#availablePool .draw-pool-item'))
+        .map(item => item.textContent.trim());
+      
+      if (names.length > 0) {
+        let i = 0;
+        const nameInterval = setInterval(() => {
+          animationName.textContent = names[i % names.length];
+          i++;
+        }, 100);
+        
+        // 存储interval ID以便后续清除
+        drawAnimation.dataset.nameInterval = nameInterval;
+      }
+    }
+    
+    // 停止抽签动画
+    function stopDrawAnimation() {
+      // 清除名字闪烁动画
+      if (drawAnimation.dataset.nameInterval) {
+        clearInterval(parseInt(drawAnimation.dataset.nameInterval));
+      }
+      
+      // 隐藏动画层
+      drawAnimation.classList.add('d-none');
+      animationName.textContent = '';
+    }
+    
+    // 显示抽签结果
+    function showDrawResults(drawnStudents, activityName, isTestMode) {
+      // 更新结果标题
+      resultTitle.textContent = `${activityName} (${drawnStudents.length}人)`;
+      
+      // 清空结果容器
+      resultItems.innerHTML = '';
+      
+      // 添加结果项
+      drawnStudents.forEach((student, index) => {
+        const item = document.createElement('div');
+        item.className = isTestMode ? 'result-item test-mode' : 'result-item';
+        item.textContent = student.name;
+        item.style.animationDelay = `${index * 0.1}s`;
+        resultItems.appendChild(item);
+      });
+      
+      // 显示结果区域
+      noResultsMessage.classList.add('d-none');
+      drawResults.classList.remove('d-none');
+    }
+    
+    // 更新抽签池
+    function updatePools(drawnStudents, availableStudents) {
+      // 更新可抽数量
+      availableCount.textContent = `可抽: ${availableStudents.length}`;
+      
+      // 从可抽区域移动到已抽区域
+      drawnStudents.forEach(student => {
+        // 查找对应的DOM元素
+        const item = document.querySelector(`#availablePool .draw-pool-item[data-id="${student.id}"]`);
+        if (item) {
+          // 创建新元素到已抽区域
+          const newItem = document.createElement('div');
+          newItem.className = 'draw-pool-item drawn';
+          newItem.setAttribute('data-id', student.id);
+          newItem.textContent = student.name;
+          
+          // 获取原始位置
+          const rect = item.getBoundingClientRect();
+          const startX = rect.left;
+          const startY = rect.top;
+          
+          // 移除原始元素
+          item.remove();
+          
+          // 添加到新区域
+          const itemsContainer = drawnPool.querySelector('.draw-pool-items');
+          if (itemsContainer.querySelector('.text-center')) {
+            itemsContainer.innerHTML = '';
+          }
+          itemsContainer.appendChild(newItem);
+          
+          // 应用动画
+          newItem.classList.add('highlight');
+          setTimeout(() => {
+            newItem.classList.remove('highlight');
+          }, 2000);
+        }
+      });
+      
+      // 检查是否需要显示空状态
+      const availableItemsContainer = availablePool.querySelector('.draw-pool-items');
+      if (availableStudents.length === 0) {
+        availableItemsContainer.innerHTML = `
+          <div class="text-center p-4 text-muted">
+            <i class="bi bi-info-circle"></i> 抽签池为空，请重置
+          </div>
+        `;
+      }
+    }
+    
+    // 添加一些交互效果
+    const poolItems = document.querySelectorAll('.draw-pool-item');
+    poolItems.forEach(item => {
+      item.addEventListener('click', function() {
+        this.classList.add('highlight');
+        setTimeout(() => {
+          this.classList.remove('highlight');
+        }, 1000);
+      });
+    });
+
+    // 查看全部名字按钮
+    const viewAllButtons = document.querySelectorAll('.view-all-names');
+    const namesModalElement = document.getElementById('namesModal');
+    const namesModal = new bootstrap.Modal(namesModalElement);
+    
+    viewAllButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const names = this.getAttribute('data-names').split(',');
+        const activityName = this.getAttribute('data-activity');
+        
+        // 更新模态框标题
+        document.getElementById('modalActivityName').textContent = `${activityName} (${names.length}人)`;
+        
+        // 清空并填充名单
+        const namesList = document.getElementById('modalNamesList');
+        namesList.innerHTML = '';
+        
+        names.forEach(name => {
+          const nameElement = document.createElement('div');
+          nameElement.className = 'result-item';
+          nameElement.textContent = name.trim();
+          namesList.appendChild(nameElement);
+        });
+        
+        // 显示模态框
+        namesModal.show();
+      });
+    });
+
+    // 表格分页功能
+    function setupTablePagination() {
+      const tbody = document.querySelector('.history-card table tbody');
+      if (!tbody) return;
+      
+      const rows = tbody.querySelectorAll('tr');
+      if (rows.length <= 10) return;
+      
+      const rowsPerPage = 10;
+      const pageCount = Math.ceil(rows.length / rowsPerPage);
+      const pagination = document.getElementById('historyPagination');
+      
+      // 创建分页按钮
+      for (let i = 0; i < pageCount; i++) {
+        const li = document.createElement('li');
+        li.className = 'page-item' + (i === 0 ? ' active' : '');
+        
+        const a = document.createElement('a');
+        a.className = 'page-link';
+        a.href = '#history';
+        a.textContent = i + 1;
+        a.addEventListener('click', function(e) {
+          e.preventDefault();
+          showPage(i);
+          
+          // 更新活动页标记
+          document.querySelectorAll('#historyPagination .page-item').forEach(item => {
+            item.classList.remove('active');
+          });
+          this.parentElement.classList.add('active');
+        });
+        
+        li.appendChild(a);
+        pagination.appendChild(li);
+      }
+      
+      // 显示指定页
+      function showPage(pageNum) {
+        const start = pageNum * rowsPerPage;
+        const end = start + rowsPerPage;
+        
+        rows.forEach((row, index) => {
+          row.style.display = (index >= start && index < end) ? '' : 'none';
+        });
+        
+        // 滚动到表格顶部
+        document.querySelector('.history-card').scrollIntoView({behavior: 'smooth'});
+      }
+      
+      // 初始显示第一页
+      showPage(0);
+    }
+    
+    // 调用分页设置
+    setupTablePagination();
+  });
+</script> 

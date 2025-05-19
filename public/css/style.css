@@ -283,19 +283,20 @@ body {
 
 /* 表格样式 */
 .table {
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
 }
 
 .table th {
   font-weight: 600;
   border-top: none;
+  padding: 1rem;
 }
 
 .table td {
+  padding: 1rem;
   vertical-align: middle;
-  transition: all 0.2s ease;
 }
 
 .table tbody tr {
@@ -303,28 +304,30 @@ body {
 }
 
 .table tbody tr:hover {
-  background-color: rgba(13, 110, 253, 0.05);
+  background-color: rgba(0, 123, 255, 0.05);
+  transform: scale(1.01);
 }
 
-/* 进度条样式 */
+/* 进度条 */
 .progress {
-  border-radius: 8px;
+  height: 10px;
+  border-radius: 5px;
   overflow: hidden;
   background-color: #e9ecef;
-  height: 0.8rem;
+  margin-bottom: 0.5rem;
 }
 
 .progress-bar {
-  transition: width 1s ease;
-  background-image: linear-gradient(to right, #007bff, #6610f2);
+  transition: width 0.6s ease;
+  background-color: #0d6efd;
 }
 
-/* 页脚样式 */
+/* 页脚 */
 .footer {
-  margin-top: 3rem;
   padding: 1.5rem 0;
   background-color: #343a40;
   color: #fff;
+  margin-top: 2rem;
 }
 
 /* 徽章样式 */
@@ -438,20 +441,22 @@ tr:hover .badge,
   background-color: #fffcf0;
 }
 
-/* 滚动条样式 */
+/* 滚动条美化 */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #c1c1c1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #007bff;
+  background: #a8a8a8;
 } 

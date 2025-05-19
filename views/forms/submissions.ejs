@@ -1,0 +1,87 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h2 class="mb-0">我的提交记录</h2>
+      <div>
+        <a href="/forms" class="btn btn-light me-2">
+          <i class="fas fa-home"></i> 表单主页
+        </a>
+        <a href="/forms/active" class="btn btn-light">
+          <i class="fas fa-pen"></i> 填写表单
+        </a>
+      </div>
+    </div>
+    <div class="card-body">
+      <% if (submissions && submissions.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th width="40%">表单标题</th>
+                <th width="25%">提交时间</th>
+                <th width="35%">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% submissions.forEach(submission => { %>
+                <tr>
+                  <td><%= submission.form_title %></td>
+                  <td><%= new Date(submission.created_at).toLocaleString('zh-CN') %></td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <a href="/forms/response/<%= submission.id %>" class="btn btn-outline-primary">
+                        <i class="fas fa-eye"></i> 查看
+                      </a>
+                      <% if (submission.can_edit) { %>
+                        <a href="/forms/response/<%= submission.id %>/edit" class="btn btn-outline-warning">
+                          <i class="fas fa-edit"></i> 编辑
+                        </a>
+                      <% } %>
+                      <a href="/forms/view/<%= submission.form_id %>" class="btn btn-outline-info">
+                        <i class="fas fa-file"></i> 重新填写
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        
+        <% if (pagination.totalPages > 1) { %>
+          <nav aria-label="分页导航" class="mt-4">
+            <ul class="pagination justify-content-center">
+              <li class="page-item <%= pagination.currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="/forms/submissions?page=<%= pagination.currentPage - 1 %>">上一页</a>
+              </li>
+              
+              <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+                <li class="page-item <%= pagination.currentPage === i ? 'active' : '' %>">
+                  <a class="page-link" href="/forms/submissions?page=<%= i %>"><%= i %></a>
+                </li>
+              <% } %>
+              
+              <li class="page-item <%= pagination.currentPage === pagination.totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="/forms/submissions?page=<%= pagination.currentPage + 1 %>">下一页</a>
+              </li>
+            </ul>
+          </nav>
+        <% } %>
+        
+      <% } else { %>
+        <div class="text-center py-5">
+          <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+          <h3>暂无提交记录</h3>
+          <p class="text-muted">您还没有提交过任何表单</p>
+          <a href="/forms/active" class="btn btn-primary mt-3">
+            <i class="fas fa-pen"></i> 去填写表单
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %> 

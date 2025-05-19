@@ -1,0 +1,136 @@
+<%- include('../partials/header', {title: '管理员管理'}) %>
+
+<div class="container mt-5 pt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-people"></i> 管理员管理</h2>
+    <div>
+      <a href="/admin/dashboard" class="btn btn-outline-secondary me-2">
+        <i class="bi bi-arrow-left"></i> 返回仪表板
+      </a>
+      <a href="/admin/add" class="btn btn-primary">
+        <i class="bi bi-person-plus"></i> 添加管理员
+      </a>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <% if (admins && admins.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>用户名</th>
+                <th>角色</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% admins.forEach(admin => { %>
+                <tr>
+                  <td>
+                    <%= admin.username %>
+                    <% if (admin.id === currentAdmin.id) { %>
+                      <span class="badge bg-info">当前用户</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <span class="badge <%= admin.role === 2 ? 'bg-danger' : 'bg-primary' %>">
+                      <%= admin.role === 2 ? '超级管理员' : '普通管理员' %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge bg-success">活跃</span>
+                  </td>
+                  <td>
+                    <% if (admin.id !== currentAdmin.id) { %>
+                      <button class="btn btn-sm btn-outline-danger delete-admin" data-id="<%= admin.id %>" data-username="<%= admin.username %>">
+                        <i class="bi bi-trash"></i> 删除
+                      </button>
+                    <% } else { %>
+                      <span class="text-muted">无法删除自己</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle"></i> 暂无管理员数据
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- 删除确认弹窗 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">确认删除</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        确定要删除管理员 <span id="adminToDelete"></span> 吗？此操作不可撤销。
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirmDelete">确认删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 删除管理员功能
+    const deleteButtons = document.querySelectorAll('.delete-admin');
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const adminToDeleteSpan = document.getElementById('adminToDelete');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    
+    let adminIdToDelete = null;
+    
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        adminIdToDelete = this.getAttribute('data-id');
+        const adminUsername = this.getAttribute('data-username');
+        adminToDeleteSpan.textContent = adminUsername;
+        deleteModal.show();
+      });
+    });
+    
+    confirmDeleteBtn.addEventListener('click', function() {
+      if (adminIdToDelete) {
+        fetch(`/admin/delete/${adminIdToDelete}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // 刷新页面
+            window.location.reload();
+          } else {
+            alert('删除失败: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('操作失败，请稍后再试');
+        })
+        .finally(() => {
+          deleteModal.hide();
+        });
+      }
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %> 
